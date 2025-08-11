@@ -24,6 +24,7 @@ import { FeedbackRoute } from "./Routes/FeedbackHandler";
 import { Socket, Server } from "socket.io";
 import { Product } from "./Database/Products";
 import SocketDb from "./Database/Socket";
+import Users from "./Database/Users";
 
 dotenv.config({
   path: "./.env",
@@ -51,9 +52,20 @@ const server = http.createServer(
             let userToken = request.headers["user-token"];
 
             if (userToken) {
-              let user = await retrieveUser(userToken as string);
+              let user = retrieveUser(userToken as string)
 
-              if (user) response.end(JSON.stringify(user));
+              if (user){
+                let userFinder = await Users.findOne({
+                  id:(user as any).id
+                }) 
+
+                if(userFinder == null || !userFinder.id || !userFinder.email){
+                  response.end(JSON.stringify({
+                    message:"User does not exist"
+                  }))
+                }
+                else response.end(JSON.stringify(user));
+              }
               else response.end("Access token expired, refresh");
             } else {
               response.writeHead(401, "Non-authentication");

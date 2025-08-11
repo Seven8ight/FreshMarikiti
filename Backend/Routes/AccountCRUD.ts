@@ -482,7 +482,7 @@ export const Signup = (
     tokenRequest.write(postData);
     tokenRequest.end();
   },
-  retrieveUser = async (accesstoken: string) => {
+  retrieveUser = (accesstoken: string) => {
     try {
       let tokenVerification = jwt.verify(accesstoken, jwtAccessT as string);
       return tokenVerification;
@@ -616,7 +616,7 @@ export const Signup = (
 
     if (userToken) {
       let user: any = retrieveUser(userToken as string);
-
+      console.log(user)
       if (user) {
         let userFinder = await UserSchema.findOne({ id: user.id });
 
@@ -631,8 +631,8 @@ export const Signup = (
             response.end("Deletion failed: Server error, try again please");
           }
         } else {
-          response.writeHead(403, "Unauthorised token");
-          response.end("Token expired, try again");
+          response.writeHead(403, "Unauthorised user");
+          response.end("User not found in the database");
         }
       } else {
         response.writeHead(404, "Non-existent user");
