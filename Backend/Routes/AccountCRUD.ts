@@ -43,6 +43,7 @@ type UpdateUserBody = {
 };
 
 const jwtAccessT = process.env.JWT_ACCESS_TOKEN,
+  jwtRefreshT = process.env.JWT_REFRESH_TOKEN,
   googleID = process.env.GOAUTH_ID,
   googleSecret = process.env.GOAUTH_SECRET,
   googleAuthURL = "https://accounts.google.com/o/oauth2/auth",
@@ -124,12 +125,26 @@ const DataStore: Validator = async (type, Data) => {
   generateUserToken = async (payload: any) => {
     const accessToken = jwt.sign(payload, jwtAccessT as string, {
       expiresIn: "36500s",
-    });
+    }),refreshToken = jwt.sign(payload,jwtRefreshT as string)
 
     return {
       accessToken: accessToken,
+      refreshToken:refreshToken
     };
-  };
+  },refreshToken = (refreshToken:string) => {
+    try{
+      const tokenValidator = jwt.verify(refreshToken,jwtRefreshT as string)
+
+      if(tokenValidator)
+        return{
+          accessToken:jwt.sign(tokenValidator,jwtAccessT as string)
+        }
+      else return "Invalid user"
+      
+    }catch(error){
+      return "Token is invalid"
+    }
+  }
 
 export const Signup = (
     request: IncomingMessage,
@@ -166,6 +181,7 @@ export const Signup = (
               response.end(
                 JSON.stringify({
                   accessToken: user.accessToken,
+                  refreshToken:user.refreshToken
                 })
               );
             }
@@ -240,6 +256,7 @@ export const Signup = (
                 response.end(
                   JSON.stringify({
                     accessToken: encodedUser.accessToken,
+                    refreshToken:encodedUser.refreshToken
                   })
                 );
                 return;
@@ -283,6 +300,42 @@ export const Signup = (
     } catch (error) {
       console.log(error);
     }
+  },
+  RefreshToken = (request:IncomingMessage,response:ServerResponse<IncomingMessage>) => {
+    let userData:any = ""
+
+    request.on('data',(data:Buffer) => {
+      userData += data.toString()
+    })
+
+    request.on('end',() => {
+      try{
+        const refreshTokenData:{refreshToken:any} = JSON.parse(userData)
+
+        if(refreshTokenData.refreshToken){
+          const refresher = refreshToken(refreshTokenData.refreshToken)
+
+          if(typeof refresher !== 'string'){
+            response.writeHead(200)
+            response.end(JSON.stringify({
+              accessToken:refresher.accessToken
+            }))
+          }
+          else{
+            response.writeHead(403)
+            response.end(JSON.stringify({
+              message:refresher
+            }))
+          }
+        }
+      }
+      catch(error){
+        response.writeHead(500)
+        response.end(JSON.stringify({
+          message:(error as Error).message
+        }))
+      }
+    })
   },
   googleAuthentication = async (response: ServerResponse<IncomingMessage>) => {
     const authUrl = `${googleAuthURL}?client_id=${googleID}&redirect_uri=${encodeURIComponent(
@@ -443,7 +496,7 @@ export const Signup = (
     response: ServerResponse<IncomingMessage>
   ) => {
     let details: any = "",
-      userAccessToken = request.headers["user_token"];
+      userAccessToken = request.headers["user-token"];
 
     if (userAccessToken) {
       request.on("data", (data: Buffer) => {
@@ -454,7 +507,7 @@ export const Signup = (
         if (details != null) {
           let userFinder = await retrieveUser(userAccessToken as string),
             userDetails: UpdateUserBody = JSON.parse(details);
-
+         
           if (userFinder) {
             let dbUserFinder = await UserSchema.findOne({
               id: userDetails.id,
@@ -530,29 +583,7 @@ export const Signup = (
                 }
               }
               response.writeHead(201);
-              response.end(
-                `${updatedValues.includes("name") && "Name updated"}, ${
-                  updatedValues.includes("email") && "Email updated"
-                }, ${updatedValues.includes("password") && "Password updated"},
-                ${updatedValues.includes("cart") && "Cart updated"},
-                ${updatedValues.includes("goals") && "Goals updated"}, 
-                 ${
-                   updatedValues.includes("emailfail") &&
-                   "Email failed try again please"
-                 }, ${
-                  updatedValues.includes("namefail") &&
-                  "Name failed, try again please"
-                }, ${
-                  updatedValues.includes("passwordfail") &&
-                  "Password failed,try again please"
-                }, ${
-                  updatedValues.includes("cartfail") &&
-                  "Cart addition failed please try again"
-                }, ${
-                  updatedValues.includes("goals") &&
-                  "Goals change has not been made, please try again"
-                }`
-              );
+              response.end(updatedValues.filter(Boolean).join(" and ") + " updated")
             } else {
               response.writeHead(404, "Non-existent user");
               response.end("User doesn't exist");
@@ -581,7 +612,7 @@ export const Signup = (
     request: IncomingMessage,
     response: ServerResponse<IncomingMessage>
   ) => {
-    let userToken = request.headers["user_token"];
+    let userToken = request.headers["user-token"];
 
     if (userToken) {
       let user: any = retrieveUser(userToken as string);

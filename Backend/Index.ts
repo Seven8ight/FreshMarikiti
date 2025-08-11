@@ -5,6 +5,7 @@ import {
   Login,
   Update,
   Delete,
+  RefreshToken,
   googleAuthentication,
   googleUserToken,
   retrieveUser,
@@ -61,6 +62,9 @@ const server = http.createServer(
               );
             }
             break;
+          case "tokenrefresh":
+            RefreshToken(request,response)
+            break
           case "login":
             if (request.method == "POST") Login(request, response);
             else {
@@ -86,7 +90,7 @@ const server = http.createServer(
             googleUserToken(request, response);
             break;
           case "update":
-            if (request.method == "PUT") Update(request, response);
+            if (request.method == "PATCH") Update(request, response);
             else {
               response.writeHead(405);
               response.end("Update route, use a put method instead");
