@@ -142,10 +142,20 @@ const server = http.createServer(
         if (urlSegment[1] == "products") {
           switch (urlSegment[2]) {
             case "list":
-              listProducts(request, response);
+              if(request.method == 'GET')
+                listProducts(request, response);
+              else{
+                response.writeHead(405)
+                response.end("Invalid HTTP method, use GET instead")
+              }
               break;
             case "specific":
-              listProduct(request, response);
+              if(request.method == 'GET')
+                listProduct(request, response);
+              else{
+                response.writeHead(405)
+                response.end("Invalid HTTP method, use GET instead")
+              }
               break;
             case "add":
               if (request.method == "POST") addProduct(request, response);
