@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc build",
     "dev": "node --watch ./Index.js",
+    "server": "npx tsx --watch Server.ts",
     "migrations": "npx tsx ./Migrations/Migrations.ts",
     "test": "vitest"
   },
