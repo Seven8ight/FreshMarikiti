@@ -1,11 +1,11 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { OrderRepository } from "./Order.repository";
 import { pgClient } from "../../Config/Db";
-import { OrderService } from "./Order.service";
-import { Order } from "./Order.types";
+import { verifyAccessToken } from "../../Utils/JWT";
+import { Waste } from "./Waste.types";
+import { WasteRepository } from "./Waste.repository";
+import { WasteService } from "./Waste.service";
 
-export const OrderController = (
+export const WasteController = (
   request: IncomingMessage,
   response: ServerResponse<IncomingMessage>,
 ) => {
@@ -39,8 +39,8 @@ export const OrderController = (
 
   let unparsedRequestBody: string = "";
 
-  const orderRepo = new OrderRepository(pgClient),
-    orderService = new OrderService(orderRepo);
+  const wasteRepo = new WasteRepository(pgClient),
+    wasteService = new WasteService(wasteRepo);
 
   request.on(
     "data",
@@ -67,10 +67,8 @@ export const OrderController = (
             return;
           }
 
-          const createOperation: Order = await orderService.createOrder(
-            userId,
-            parsedRequestBody,
-          );
+          const createOperation: Waste =
+            await wasteService.createWaste(parsedRequestBody);
 
           response.writeHead(201);
           response.end(JSON.stringify(createOperation));
@@ -86,8 +84,7 @@ export const OrderController = (
             return;
           }
 
-          const editOperation =
-            await orderService.updateOrder(parsedRequestBody);
+          const editOperation = await wasteService.editWaste(parsedRequestBody);
 
           response.writeHead(201);
           response.end(JSON.stringify(editOperation));
@@ -116,21 +113,26 @@ export const OrderController = (
           }
 
           if (type == "all") {
-            const retrieveAllProducts =
-              await orderService.getOrdersByUser(userId);
+            const retrieveAllProducts = await wasteService.getAllWaste();
 
             response.writeHead(200);
             response.end(JSON.stringify(retrieveAllProducts));
-          } else if (type == "id") {
-            const orderId = searchParams.get("orderId");
-
-            if (!orderId)
-              throw new Error("Provide the category in search params");
-
-            const retrieveOrderById = await orderService.getOrderById(orderId);
+          } else if (type == "user") {
+            const retrieveProductsByCategory =
+              await wasteService.getUserWaste(userId);
 
             response.writeHead(200);
-            response.end(JSON.stringify(retrieveOrderById));
+            response.end(JSON.stringify(retrieveProductsByCategory));
+          } else if (type == "one") {
+            const wasteId = searchParams.get("wasteid");
+
+            if (!wasteId)
+              throw new Error("Provide the product id in search params");
+
+            const retrieveProductById = await wasteService.getWaste(wasteId);
+
+            response.writeHead(200);
+            response.end(JSON.stringify(retrieveProductById));
           } else throw new Error("Type should be either id,category or all");
 
           break;
@@ -159,9 +161,9 @@ export const OrderController = (
           }
 
           if (typeDeletion == "one") {
-            const productId = searchDeletionParams.get("productid");
+            const wasteId = searchDeletionParams.get("wasteid");
 
-            if (!productId) {
+            if (!wasteId) {
               response.writeHead(404);
               response.end(
                 JSON.stringify({
@@ -171,12 +173,17 @@ export const OrderController = (
               return;
             }
 
-            await orderService.deleteOrder(userId);
+            await wasteService.deleteWaste(wasteId);
 
             response.writeHead(204);
             response.end();
           } else if (typeDeletion == "all") {
-            await orderService.deleteUserOrders(userId);
+            await wasteService.deleteAllWaste();
+
+            response.writeHead(204);
+            response.end();
+          } else if (typeDeletion == "user") {
+            await wasteService.deleteUserWaste(userId);
 
             response.writeHead(204);
             response.end();

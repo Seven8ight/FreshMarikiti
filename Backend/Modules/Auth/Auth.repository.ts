@@ -22,24 +22,26 @@ export class AuthRepository implements AuthRepo {
         const hashedPassword = hashPassword(userData.password as string);
 
         newUser = await this.pgClient.query(
-          `INSERT INTO users(username,email,password,profile_image,oauth) VALUES($1,$2,$3,$4,$5) RETURNING *`,
+          `INSERT INTO users(username,email,password,profile_image,oauth,role) VALUES($1,$2,$3,$4,$5,$6::text[]) RETURNING *`,
           [
             userData.username,
             userData.email,
             hashedPassword,
             userData.profileImage,
             false,
+            ["customer"],
           ],
         );
       } else {
         newUser = await this.pgClient.query(
-          `INSERT INTO users(username,email,profile_image,oauth,oauthprovider) VALUES($1,$2,$3,$4,$5) RETURNING *`,
+          `INSERT INTO users(username,email,profile_image,oauth,oauthprovider,role) VALUES($1,$2,$3,$4,$5,$6::text[]) RETURNING *`,
           [
             userData.username,
             userData.email,
             userData.profileImage,
             true,
             userData.oAuthProvider,
+            ["customer"],
           ],
         );
       }

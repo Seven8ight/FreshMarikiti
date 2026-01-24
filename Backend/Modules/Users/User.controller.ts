@@ -3,7 +3,7 @@ import type { UserRepo, Userservice } from "./User.types.js";
 import { UserRepository } from "./User.repository.js";
 import { pgClient } from "../../Config/Db.js";
 import { UserService } from "./User.service.js";
-import { generateTokens, verifyAccessToken } from "../../Utils/JWT.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
 
 export const UserController = (
   request: IncomingMessage,

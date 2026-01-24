@@ -1,9 +1,5 @@
-import { generateTokens } from "../../Utils/JWT";
 import { errorMsg, warningMsg } from "../../Utils/Logger.js";
 import type {
-  createUserDTO,
-  createUserType,
-  loginType,
   PublicUser,
   updateUserDTO,
   User,
@@ -22,6 +18,8 @@ export class UserService implements Userservice {
       profileImage: (userData as any).profile_image,
       biocoins: userData.biocoins,
       goals: userData.goals,
+      phoneNumber: userData.phoneNumber,
+      role: userData.role,
     };
   }
 
@@ -34,9 +32,19 @@ export class UserService implements Userservice {
         "email",
         "password",
         "profileimage",
+        "role",
       ];
 
       let newUserObject: Record<string, any> = {};
+
+      if (newUserData.role) {
+        const user = await this.UserRepo.getUserById(userId);
+
+        if (!user.role.includes("admin"))
+          throw new Error(
+            "Normal users cannot add/update roles only admins can",
+          );
+      }
 
       for (let [key, value] of Object.entries(newUserData)) {
         if (!allowedFields.includes(key.toLowerCase())) continue;

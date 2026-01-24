@@ -8,6 +8,10 @@ export type User = {
   oAuthProvider: string;
   biocoins: number;
   goals: string;
+  role: Array<"rider" | "customer" | "vendor" | "connector" | "admin">;
+  marketId?: string;
+  stallNumber?: string;
+  phoneNumber: string;
 };
 
 export type tokens = {

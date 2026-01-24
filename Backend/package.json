@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc build",
     "dev": "node --watch ./Index.js",
+    "migrations": "npx tsx ./Migrations/Migrations.ts",
     "test": "vitest"
   },
   "keywords": [],
@@ -23,7 +24,7 @@
     "mongoose": "^8.13.1",
     "pg": "^8.17.2",
     "simple-oauth2": "^5.1.0",
-    "socket.io": "^4.8.1",
+    "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
@@ -39,6 +40,7 @@
     "@types/node": "^22.13.14",
     "@types/pg": "^8.16.0",
     "@types/simple-oauth2": "^5.0.7",
+    "@types/socket.io": "^3.0.1",
     "tsx": "^4.20.3",
     "vitest": "^3.1.1"
   }

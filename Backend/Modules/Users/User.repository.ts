@@ -1,33 +1,79 @@
 import type { Client, QueryResult } from "pg";
-import type { updateUserDTO, User, UserRepo } from "./User.types";
+import type { User, UserRepo } from "./User.types";
 import { warningMsg } from "./../../Utils/Logger.js";
 import { hashPassword } from "./../../Utils/Password.js";
+import { MarketService } from "../Market/Market.service";
+import { MarketRepository } from "../Market/Market.repository";
 
 export class UserRepository implements UserRepo {
   constructor(private pgClient: Client) {}
 
-  async editUser(userId: string, newUserData: updateUserDTO) {
+  async editUser(userId: string, newUserData: any) {
     try {
-      let keys: string[] = [],
-        values: any[] = [],
-        paramIndex = 2;
+      let keys: string[] = [];
+      let values: any[] = [];
+      let paramIndex = 2;
 
-      for (let [key, value] of Object.entries(newUserData)) {
-        if (key == "password") value = hashPassword(value as string);
+      const { role, action = "add", ...rest } = newUserData;
 
+      // Normal fields
+      for (let [key, value] of Object.entries(rest)) {
+        if (key === "password") value = hashPassword(value as string);
         keys.push(`${key}=$${paramIndex++}`);
         values.push(value);
       }
 
-      const userUpdate: QueryResult<User> = await this.pgClient.query(
-        `UPDATE users SET ${keys.join(",")} WHERE id=$1 RETURNING *`,
+      // Role handling (SPECIAL CASE)
+      if (role) {
+        if (
+          !["customer", "vendor", "rider", "connector", "admin"].includes(role)
+        ) {
+          throw new Error("Invalid role");
+        }
+
+        if (action === "remove") {
+          keys.push(`roles = array_remove(roles, $${paramIndex++})`);
+          values.push(role);
+        } else {
+          keys.push(`
+          roles = (
+            SELECT ARRAY(
+              SELECT DISTINCT unnest(roles || $${paramIndex++}::text[])
+            )
+          )
+        `);
+          values.push([role]);
+        }
+      }
+
+      if (keys.length === 0) {
+        throw new Error("No fields provided for update");
+      }
+
+      if (keys.includes("marketid")) {
+        if (action == "add") {
+          const marketService = new MarketService(
+              new MarketRepository(this.pgClient),
+            ),
+            marketId = keys.findIndex((value) => value == "marketid");
+
+          let getMarket = await marketService.getMarket(values[marketId]);
+
+          marketService.editMarket({
+            id: values[marketId],
+            vendors: getMarket.vendors++,
+          });
+        }
+      }
+
+      const userUpdate = await this.pgClient.query(
+        `UPDATE users SET ${keys.join(", ")} WHERE id=$1 RETURNING *`,
         [userId, ...values],
       );
-
       if (userUpdate.rowCount && userUpdate.rowCount > 0)
-        return userUpdate.rows[0]!;
+        return userUpdate.rows[0];
 
-      throw new Error(`User does not exist of id, ${userId}`);
+      throw new Error(`User does not exist with id ${userId}`);
     } catch (error) {
       warningMsg("Edit user repo error occurred");
       throw error;
