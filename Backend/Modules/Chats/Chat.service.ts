@@ -1,5 +1,5 @@
-import { ChatRepository } from "./Chat.repository";
-import { Chat, ChatMessage } from "./Chat.types";
+import { ChatRepository } from "./Chat.repository.js";
+import { Chat, ChatMessage } from "./Chat.types.js";
 
 export class ChatService {
   constructor(private repo: ChatRepository) {}

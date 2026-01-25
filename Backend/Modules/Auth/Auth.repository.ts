@@ -1,5 +1,5 @@
 import type { Client, QueryResult } from "pg";
-import { pgClient } from "../../Config/Db";
+import { pgClient } from "../../Config/Db.js";
 
 import type {
   createUserDTO,
@@ -9,7 +9,7 @@ import type {
 } from "../Users/User.types.js";
 import { comparePasswordAndHash, hashPassword } from "../../Utils/Password.js";
 import { errorMsg, warningMsg } from "../../Utils/Logger.js";
-import type { AuthRepo, RefreshToken } from "./Auth.types";
+import type { AuthRepo, RefreshToken } from "./Auth.types.js";
 
 export class AuthRepository implements AuthRepo {
   constructor(private pgClient: Client) {}

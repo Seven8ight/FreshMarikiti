@@ -2,7 +2,7 @@ import {
   generateTokens,
   refreshAccessToken,
   verifyRefreshToken,
-} from "../../Utils/JWT";
+} from "../../Utils/JWT.js";
 import { warningMsg } from "../../Utils/Logger.js";
 import type {
   createUserDTO,
@@ -10,8 +10,8 @@ import type {
   loginType,
   PublicUser,
   User,
-} from "../Users/User.types";
-import type { AuthRepo, AuthServ, tokens } from "./Auth.types";
+} from "../Users/User.types.js";
+import type { AuthRepo, AuthServ, tokens } from "./Auth.types.js";
 
 export class AuthService implements AuthServ {
   constructor(private authRepo: AuthRepo) {}
@@ -24,6 +24,8 @@ export class AuthService implements AuthServ {
       biocoins: userData.biocoins,
       goals: userData.goals,
       profileImage: userData.profileImage,
+      role: userData.role,
+      phoneNumber: userData.phoneNumber,
     };
   }
 

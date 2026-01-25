@@ -1,10 +1,10 @@
 import { IncomingMessage, ServerResponse } from "http";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { MarketRepository } from "./Market.repository";
-import { MarketService } from "./Market.service";
-import { pgClient } from "../../Config/Db";
-import { Market } from "./Market.types";
-import { PublicUser } from "../Users/User.types";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { MarketRepository } from "./Market.repository.js";
+import { MarketService } from "./Market.service.js";
+import { pgClient } from "../../Config/Db.js";
+import { Market } from "./Market.types.js";
+import { PublicUser } from "../Users/User.types.js";
 
 export const MarketController = async (
   request: IncomingMessage,

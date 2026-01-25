@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { FeedbackRepository } from "./Feedback.repository";
-import { FeedbackService } from "./Feedback.service";
-import { pgClient } from "../../Config/Db";
-import { Feedback } from "./Feedback.types";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { FeedbackRepository } from "./Feedback.repository.js";
+import { FeedbackService } from "./Feedback.service.js";
+import { pgClient } from "../../Config/Db.js";
+import { Feedback } from "./Feedback.types.js";
 
 export const FeedbackController = (
   request: IncomingMessage,

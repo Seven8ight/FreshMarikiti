@@ -1,9 +1,9 @@
 import type { Client, QueryResult } from "pg";
-import type { User, UserRepo } from "./User.types";
+import type { User, UserRepo } from "./User.types.js";
 import { warningMsg } from "./../../Utils/Logger.js";
 import { hashPassword } from "./../../Utils/Password.js";
-import { MarketService } from "../Market/Market.service";
-import { MarketRepository } from "../Market/Market.repository";
+import { MarketService } from "../Market/Market.service.js";
+import { MarketRepository } from "../Market/Market.repository.js";
 
 export class UserRepository implements UserRepo {
   constructor(private pgClient: Client) {}

@@ -1,8 +1,8 @@
 import { Server, Socket } from "socket.io";
-import { ChatRepository } from "./Chat.repository";
-import { ChatService } from "./Chat.service";
-import { pgClient } from "../../Config/Db";
-import { verifyAccessToken } from "../../Utils/JWT";
+import { ChatRepository } from "./Chat.repository.js";
+import { ChatService } from "./Chat.service.js";
+import { pgClient } from "../../Config/Db.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
 
 export const registerChatSocket = (io: Server) => {
   const repo = new ChatRepository(pgClient);

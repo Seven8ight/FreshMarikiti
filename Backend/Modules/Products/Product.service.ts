@@ -3,8 +3,8 @@ import {
   ProductRepo,
   ProductServ,
   updateProductDTO,
-} from "./Product.types";
-import { warningMsg } from "../../Utils/Logger";
+} from "./Product.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class ProductService implements ProductServ {
   constructor(private productRepo: ProductRepo) {}

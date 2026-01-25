@@ -4,9 +4,9 @@ import {
   editMarketDTO,
   Market,
   MarketRepo,
-} from "./Market.types";
-import { warningMsg } from "../../Utils/Logger";
-import { User } from "../Users/User.types";
+} from "./Market.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
+import { User } from "../Users/User.types.js";
 
 export class MarketRepository implements MarketRepo {
   constructor(private DB: Client) {}

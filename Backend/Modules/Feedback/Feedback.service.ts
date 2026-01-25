@@ -1,11 +1,11 @@
-import { warningMsg } from "../../Utils/Logger";
+import { warningMsg } from "../../Utils/Logger.js";
 import {
   createFeedbackDTO,
   editFeedbackDTO,
   Feedback,
   FeedbackRepo,
   FeedbackServ,
-} from "./Feedback.types";
+} from "./Feedback.types.js";
 
 export class FeedbackService implements FeedbackServ {
   constructor(private feedbackRepo: FeedbackRepo) {}

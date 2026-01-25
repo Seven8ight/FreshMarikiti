@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import https from "https";
-import { AuthRepository } from "./Auth.repository";
+import { AuthRepository } from "./Auth.repository.js";
 import { pgClient } from "../../Config/Db.js";
 import type { AuthServ } from "./Auth.types.js";
 import { AuthService } from "./Auth.service.js";

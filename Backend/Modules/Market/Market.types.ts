@@ -1,4 +1,4 @@
-import type { PublicUser, User } from "../Users/User.types";
+import type { PublicUser, User } from "../Users/User.types.js";
 
 export type Market = {
   id: string;

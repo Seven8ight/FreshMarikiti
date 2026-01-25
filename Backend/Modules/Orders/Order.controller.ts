@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { OrderRepository } from "./Order.repository";
-import { pgClient } from "../../Config/Db";
-import { OrderService } from "./Order.service";
-import { Order } from "./Order.types";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { OrderRepository } from "./Order.repository.js";
+import { pgClient } from "../../Config/Db.js";
+import { OrderService } from "./Order.service.js";
+import { Order } from "./Order.types.js";
 
 export const OrderController = (
   request: IncomingMessage,

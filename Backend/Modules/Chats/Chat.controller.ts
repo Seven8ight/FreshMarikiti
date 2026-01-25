@@ -1,8 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { ChatRepository } from "./Chat.repository";
-import { ChatService } from "./Chat.service";
-import { pgClient } from "../../Config/Db";
-import { verifyAccessToken } from "../../Utils/JWT";
+import { ChatRepository } from "./Chat.repository.js";
+import { ChatService } from "./Chat.service.js";
+import { pgClient } from "../../Config/Db.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
 
 export const ChatController = async (
   request: IncomingMessage,

@@ -1,12 +1,12 @@
-import { warningMsg } from "../../Utils/Logger";
-import type { User, PublicUser } from "../Users/User.types";
+import { warningMsg } from "../../Utils/Logger.js";
+import type { User, PublicUser } from "../Users/User.types.js";
 import {
   createMarkeDTO,
   editMarketDTO,
   Market,
   MarketRepo,
   MarketServ,
-} from "./Market.types";
+} from "./Market.types.js";
 
 export class MarketService implements MarketServ {
   constructor(private marketRepo: MarketRepo) {}

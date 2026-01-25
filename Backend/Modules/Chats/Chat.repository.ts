@@ -1,5 +1,5 @@
 import { Client, QueryResult } from "pg";
-import { Chat, ChatMessage } from "./Chat.types";
+import { Chat, ChatMessage } from "./Chat.types.js";
 
 export class ChatRepository {
   constructor(private pgClient: Client) {}

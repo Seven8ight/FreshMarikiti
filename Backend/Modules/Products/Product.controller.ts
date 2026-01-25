@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { ProductRepository } from "./Product.repository";
-import { pgClient } from "../../Config/Db";
-import { ProductService } from "./Product.service";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { Product } from "./Product.types";
+import { ProductRepository } from "./Product.repository.js";
+import { pgClient } from "../../Config/Db.js";
+import { ProductService } from "./Product.service.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { Product } from "./Product.types.js";
 
 export const ProductController = (
   request: IncomingMessage,

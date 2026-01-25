@@ -4,8 +4,8 @@ import {
   editFeedbackDTO,
   Feedback,
   FeedbackRepo,
-} from "./Feedback.types";
-import { warningMsg } from "../../Utils/Logger";
+} from "./Feedback.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class FeedbackRepository implements FeedbackRepo {
   constructor(private DB: Client) {}

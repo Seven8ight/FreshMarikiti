@@ -3,9 +3,9 @@ import {
   Order,
   OrderServ,
   updateOrderDTO,
-} from "./Order.types";
-import { OrderRepository } from "./Order.repository";
-import { warningMsg } from "../../Utils/Logger";
+} from "./Order.types.js";
+import { OrderRepository } from "./Order.repository.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class OrderService implements OrderServ {
   constructor(private orderRepo: OrderRepository) {}

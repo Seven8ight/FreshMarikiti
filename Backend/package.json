@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "Index.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
     "build": "tsc build",
     "dev": "node --watch ./Index.js",

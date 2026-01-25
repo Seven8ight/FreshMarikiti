@@ -3,7 +3,7 @@ import type {
   createUserType,
   loginType,
   User,
-} from "../../Modules/Users/User.types";
+} from "../../Modules/Users/User.types.js";
 
 export type tokens = {
   accessToken: string;

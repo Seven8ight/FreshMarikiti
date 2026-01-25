@@ -4,8 +4,8 @@ import {
   Order,
   OrderRepo,
   updateOrderDTO,
-} from "./Order.types";
-import { warningMsg } from "../../Utils/Logger";
+} from "./Order.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class OrderRepository implements OrderRepo {
   constructor(private DB: Client) {}
