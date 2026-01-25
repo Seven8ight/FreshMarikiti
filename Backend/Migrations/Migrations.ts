@@ -12,7 +12,7 @@ const migrationsDir = path.join(__dirname, "SQL Tables");
 (async () => {
   try {
     await connectToDatabase();
-
+    console.log(pgClient);
     try {
       await pgClient.query("SELECT * FROM migrations");
 

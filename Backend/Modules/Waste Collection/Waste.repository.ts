@@ -10,11 +10,14 @@ import { warningMsg } from "../../Utils/Logger.js";
 export class WasteRepository implements WasteRepo {
   constructor(private DB: Client) {}
 
-  async createWaste(wasteDetails: createWasteDTO): Promise<Waste> {
+  async createWaste(
+    userId: string,
+    wasteDetails: createWasteDTO,
+  ): Promise<Waste> {
     try {
       const createWaste = await this.DB.query(
-        "INSERT INTO waste_collection(userid,location,weight) VALUES($1,$2,$3)",
-        [wasteDetails.userid, wasteDetails.location, wasteDetails.weight],
+        "INSERT INTO waste_collection(userid,location,weight) VALUES($1,$2,$3) RETURNING *",
+        [userId, wasteDetails.location, wasteDetails.weight],
       );
 
       if (createWaste.rowCount && createWaste.rowCount > 0)

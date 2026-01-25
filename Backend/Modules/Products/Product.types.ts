@@ -19,9 +19,13 @@ export interface ProductRepo {
     userId: string,
     details: createProductDTO,
   ) => Promise<Product>;
-  editProduct: (newDetails: updateProductDTO) => Promise<Product>;
+  editProduct: (
+    userId: string,
+    newDetails: updateProductDTO,
+  ) => Promise<Product>;
   getProductById: (productId: string) => Promise<Product>;
   getProductsByCategory: (category: string) => Promise<Product[]>;
+  getVendorProducts: (vendorId: string) => Promise<Product[]>;
   getAllProducts: () => Promise<Product[]>;
   deleteProduct: (userId: string, productId: string) => Promise<void>;
   deleteAllSellerProducts: (sellerId: string) => Promise<void>;
@@ -29,9 +33,13 @@ export interface ProductRepo {
 
 export interface ProductServ {
   createProduct: (userId: string, details: Product) => Promise<Product>;
-  editProduct: (newDetails: updateProductDTO) => Promise<Product>;
+  editProduct: (
+    userId: string,
+    newDetails: updateProductDTO,
+  ) => Promise<Product>;
   getProductById: (productId: string) => Promise<Product>;
   getProductByCategory: (category: string) => Promise<Product[]>;
+  getVendorProducts: (vendorId: string) => Promise<Product[]>;
   getAllProducts: () => Promise<Product[]>;
   deleteProduct: (userId: string, productId: string) => Promise<void>;
 

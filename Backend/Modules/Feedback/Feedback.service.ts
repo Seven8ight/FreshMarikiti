@@ -17,13 +17,7 @@ export class FeedbackService implements FeedbackServ {
     if (!userId)
       throw new Error("User id should be provided for product creation");
 
-    const allowedFields: string[] = [
-      "userid",
-      "comment",
-      "category",
-      "productid",
-      "rating",
-    ];
+    const allowedFields: string[] = ["comment", "rating"];
 
     let newFeedbackData: Record<string, any> = {};
 

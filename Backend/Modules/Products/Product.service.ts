@@ -14,7 +14,6 @@ export class ProductService implements ProductServ {
       throw new Error("User id should be provided for product creation");
     const allowedFields: string[] = [
       "name",
-      "sellerid",
       "description",
       "quantity",
       "image",
@@ -40,7 +39,10 @@ export class ProductService implements ProductServ {
     return newProduct;
   }
 
-  async editProduct(newDetails: updateProductDTO): Promise<Product> {
+  async editProduct(
+    userId: string,
+    newDetails: updateProductDTO,
+  ): Promise<Product> {
     try {
       const allowedFields: string[] = [
         "name",
@@ -64,11 +66,12 @@ export class ProductService implements ProductServ {
 
       newProductObject["id"] = newDetails.id;
 
-      const updatedTodo = await this.productRepo.editProduct(
+      const updatedProduct = await this.productRepo.editProduct(
+        userId,
         newProductObject as updateProductDTO,
       );
 
-      return updatedTodo;
+      return updatedProduct;
     } catch (error) {
       warningMsg("Edit user service error occurred");
       throw error;
@@ -99,6 +102,18 @@ export class ProductService implements ProductServ {
       return retrieveProductsByCategory;
     } catch (error) {
       warningMsg("Get todo service error occurred");
+      throw error;
+    }
+  }
+
+  async getVendorProducts(vendorId: string): Promise<Product[]> {
+    try {
+      if (!vendorId) throw new Error("Vendor id must be provided");
+
+      const vendorProducts = await this.productRepo.getVendorProducts(vendorId);
+
+      return vendorProducts;
+    } catch (error) {
       throw error;
     }
   }

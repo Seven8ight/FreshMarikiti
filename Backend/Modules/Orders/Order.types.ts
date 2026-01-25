@@ -1,8 +1,12 @@
+export type OrderItem = {
+  id: string;
+  quantity: number;
+};
+
 export type Order = {
   id: string;
-  buyerId: string;
-  products: string[];
-  quantity: number;
+  buyerid: string;
+  products: OrderItem[];
   status: "Rejected" | "Pending" | "Complete";
 };
 

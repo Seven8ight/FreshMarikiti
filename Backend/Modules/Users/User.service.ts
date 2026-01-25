@@ -18,7 +18,7 @@ export class UserService implements Userservice {
       profileImage: (userData as any).profile_image,
       biocoins: userData.biocoins,
       goals: userData.goals,
-      phoneNumber: userData.phoneNumber,
+      phone_number: userData.phone_number,
       role: userData.role,
     };
   }
@@ -33,6 +33,9 @@ export class UserService implements Userservice {
         "password",
         "profileimage",
         "role",
+        "phone_number",
+        "goals",
+        "action",
       ];
 
       let newUserObject: Record<string, any> = {};
@@ -42,7 +45,7 @@ export class UserService implements Userservice {
 
         if (!user.role.includes("admin"))
           throw new Error(
-            "Normal users cannot add/update roles only admins can",
+            "You do not have permission to add/update roles, only admins can",
           );
       }
 

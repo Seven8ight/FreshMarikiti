@@ -67,8 +67,10 @@ export const WasteController = (
             return;
           }
 
-          const createOperation: Waste =
-            await wasteService.createWaste(parsedRequestBody);
+          const createOperation: Waste = await wasteService.createWaste(
+            userId,
+            parsedRequestBody,
+          );
 
           response.writeHead(201);
           response.end(JSON.stringify(createOperation));
@@ -113,16 +115,16 @@ export const WasteController = (
           }
 
           if (type == "all") {
-            const retrieveAllProducts = await wasteService.getAllWaste();
+            const retrieveAllWaste = await wasteService.getAllWaste();
 
             response.writeHead(200);
-            response.end(JSON.stringify(retrieveAllProducts));
+            response.end(JSON.stringify(retrieveAllWaste));
           } else if (type == "user") {
-            const retrieveProductsByCategory =
+            const retrieveWasteByUserId =
               await wasteService.getUserWaste(userId);
 
             response.writeHead(200);
-            response.end(JSON.stringify(retrieveProductsByCategory));
+            response.end(JSON.stringify(retrieveWasteByUserId));
           } else if (type == "one") {
             const wasteId = searchParams.get("wasteid");
 
@@ -196,6 +198,14 @@ export const WasteController = (
             );
           }
           break;
+        default:
+          response.writeHead(404);
+          response.end(
+            JSON.stringify({
+              Error: "Route path invalid, try create, edit, get and delete",
+            }),
+          );
+          return;
       }
     } catch (error) {
       response.writeHead(400);

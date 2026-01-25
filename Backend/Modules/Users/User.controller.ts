@@ -58,12 +58,15 @@ export const UserController = (
             return;
           }
 
-          await Userservice.editUser(userId, parsedRequestBody);
+          const newUpdatedUser = await Userservice.editUser(
+            userId,
+            parsedRequestBody,
+          );
 
-          response.writeHead(204);
+          response.writeHead(200);
           response.end(
             JSON.stringify({
-              message: "Edit successful",
+              newUpdatedUser,
             }),
           );
 
@@ -80,15 +83,13 @@ export const UserController = (
           }
 
           const searchParams = requestUrl.searchParams,
-            type = searchParams.get("type"),
-            value = searchParams.get("value");
+            type = searchParams.get("type");
 
-          if (!type || !value) {
+          if (!type) {
             response.writeHead(400);
             response.end(
               JSON.stringify({
-                error:
-                  "Provide type and value in search params (type=(email or id))",
+                error: "Provide type in search params (type=(email or id))",
               }),
             );
           }
@@ -99,7 +100,9 @@ export const UserController = (
             response.writeHead(200);
             response.end(JSON.stringify(userBody));
           } else if (type == "email") {
-            const userBody = await Userservice.getUserByEmail(value!);
+            const userBody = await Userservice.getUserByEmail(
+              userVerifier.email,
+            );
 
             response.writeHead(200);
             response.end(JSON.stringify(userBody));

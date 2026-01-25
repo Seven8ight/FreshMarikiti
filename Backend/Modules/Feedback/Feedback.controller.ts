@@ -203,6 +203,14 @@ export const FeedbackController = (
             );
           }
           break;
+        default:
+          response.writeHead(404);
+          response.end(
+            JSON.stringify({
+              error: "Route path incomplete try create, edit, get and delete",
+            }),
+          );
+          break;
       }
     } catch (error) {
       response.writeHead(400);

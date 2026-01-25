@@ -3,15 +3,15 @@ export type User = {
   username: string;
   email: string;
   password: string;
-  profileImage: string;
+  profileImage?: string;
   oAuth: boolean;
-  oAuthProvider: string;
+  oAuthProvider?: string;
   biocoins: number;
   goals: string;
   role: Array<"rider" | "customer" | "vendor" | "connector" | "admin">;
-  marketId?: string;
+  market_id?: string;
   stallNumber?: string;
-  phoneNumber: string;
+  phone_number: string;
 };
 
 export type tokens = {

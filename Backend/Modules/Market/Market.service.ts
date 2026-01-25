@@ -19,7 +19,7 @@ export class MarketService implements MarketServ {
       profileImage: (userData as any).profile_image,
       biocoins: userData.biocoins,
       goals: userData.goals,
-      phoneNumber: userData.phoneNumber,
+      phone_number: userData.phone_number,
       role: userData.role,
     };
   }

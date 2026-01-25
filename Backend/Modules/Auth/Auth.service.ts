@@ -25,7 +25,7 @@ export class AuthService implements AuthServ {
       goals: userData.goals,
       profileImage: userData.profileImage,
       role: userData.role,
-      phoneNumber: userData.phoneNumber,
+      phone_number: userData.phone_number,
     };
   }
 

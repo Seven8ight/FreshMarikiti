@@ -13,15 +13,7 @@ export class OrderService implements OrderServ {
   async createOrder(userId: string, orderDetails: createOrderDTO) {
     if (!userId)
       throw new Error("User id should be provided for product creation");
-    const allowedFields: string[] = [
-      "name",
-      "sellerid",
-      "description",
-      "quantity",
-      "image",
-      "amount",
-      "category",
-    ];
+    const allowedFields: string[] = ["products"];
 
     let newOrderData: Record<string, any> = {};
 
@@ -45,14 +37,7 @@ export class OrderService implements OrderServ {
     if (!newOrderDetails.id) throw new Error("Order id not provided");
 
     try {
-      const allowedFields: string[] = [
-        "name",
-        "description",
-        "quantity",
-        "image",
-        "amount",
-        "category",
-      ];
+      const allowedFields: string[] = ["products", "status"];
 
       let newOrderObject: Record<string, any> = {};
 

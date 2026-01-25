@@ -16,7 +16,7 @@ export class FeedbackRepository implements FeedbackRepo {
   ): Promise<Feedback> {
     try {
       const feedbackCreation: QueryResult<Feedback> = await this.DB.query(
-        "INSERT INTO feedback(userId,comment,productId,rating) VALUES($1,$2,$3,$4,$5)",
+        "INSERT INTO feedback(userId,comment,productId,rating) VALUES($1,$2,$3,$4) RETURNING *",
         [userId, feedback.comment, feedback.productid, feedback.rating],
       );
 

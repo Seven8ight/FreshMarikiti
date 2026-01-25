@@ -31,19 +31,11 @@ export class UserRepository implements UserRepo {
           throw new Error("Invalid role");
         }
 
-        if (action === "remove") {
+        if (action === "remove")
           keys.push(`roles = array_remove(roles, $${paramIndex++})`);
-          values.push(role);
-        } else {
-          keys.push(`
-          roles = (
-            SELECT ARRAY(
-              SELECT DISTINCT unnest(roles || $${paramIndex++}::text[])
-            )
-          )
-        `);
-          values.push([role]);
-        }
+        else keys.push(`roles = array_append(roles, $${paramIndex++})`);
+
+        values.push(role);
       }
 
       if (keys.length === 0) {

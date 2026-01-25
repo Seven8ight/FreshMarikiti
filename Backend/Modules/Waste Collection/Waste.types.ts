@@ -11,7 +11,7 @@ export type editWasteDTO = Pick<Waste, "id"> &
   Partial<Omit<Waste, "created_at">>;
 
 export interface WasteRepo {
-  createWaste: (wasteDetails: createWasteDTO) => Promise<Waste>;
+  createWaste: (userId: string, wasteDetails: createWasteDTO) => Promise<Waste>;
   editWaste: (newWasteDetails: editWasteDTO) => Promise<Waste>;
   getUserWaste: (userId: string) => Promise<Waste[]>;
   getWaste: (wasteId: string) => Promise<Waste>;
@@ -22,7 +22,7 @@ export interface WasteRepo {
 }
 
 export interface WasteServ {
-  createWaste: (wasteDetails: createWasteDTO) => Promise<Waste>;
+  createWaste: (userId: string, wasteDetails: createWasteDTO) => Promise<Waste>;
   editWaste: (newWasteDetails: editWasteDTO) => Promise<Waste>;
   getUserWaste: (userId: string) => Promise<Waste[]>;
   getWaste: (wasteId: string) => Promise<Waste>;

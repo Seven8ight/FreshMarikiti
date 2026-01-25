@@ -12,12 +12,12 @@ CREATE TABLE users (
   biocoins INTEGER DEFAULT 0,
   goals TEXT,
 
-  roles TEXT[] NOT NULL DEFAULT ARRAY['customer'],
+  role TEXT[] NOT NULL DEFAULT ARRAY['customer'],
 
   market_id UUID REFERENCES market(id) ON DELETE SET NULL,
   stall_number TEXT,
 
-  phone_number TEXT NOT NULL,
+  phone_number TEXT,
 
   created_at TIMESTAMP DEFAULT NOW()
 );

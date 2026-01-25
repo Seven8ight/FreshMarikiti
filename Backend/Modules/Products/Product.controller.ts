@@ -99,8 +99,10 @@ export const ProductController = (
             return;
           }
 
-          const editOperation =
-            await productService.editProduct(parsedRequestBody);
+          const editOperation = await productService.editProduct(
+            userId,
+            parsedRequestBody,
+          );
 
           response.writeHead(201);
           response.end(JSON.stringify(editOperation));
@@ -155,6 +157,17 @@ export const ProductController = (
 
             response.writeHead(200);
             response.end(JSON.stringify(retrieveProductById));
+          } else if (type == "vendor") {
+            const vendorId = searchParams.get("vendorid");
+
+            if (!vendorId)
+              throw new Error("Provide the vendor id in search params");
+
+            const retrieveVendorProducts =
+              await productService.getVendorProducts(vendorId);
+
+            response.writeHead(200);
+            response.end(JSON.stringify(retrieveVendorProducts));
           } else throw new Error("Type should be either id,category or all");
 
           break;

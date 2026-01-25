@@ -116,16 +116,16 @@ export const OrderController = (
           }
 
           if (type == "all") {
-            const retrieveAllProducts =
+            const retrieveAllOrders =
               await orderService.getOrdersByUser(userId);
 
             response.writeHead(200);
-            response.end(JSON.stringify(retrieveAllProducts));
+            response.end(JSON.stringify(retrieveAllOrders));
           } else if (type == "id") {
-            const orderId = searchParams.get("orderId");
+            const orderId = searchParams.get("orderid");
 
             if (!orderId)
-              throw new Error("Provide the category in search params");
+              throw new Error("Provide the order id in search params");
 
             const retrieveOrderById = await orderService.getOrderById(orderId);
 

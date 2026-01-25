@@ -10,11 +10,14 @@ import { warningMsg } from "../../Utils/Logger.js";
 export class WasteService implements WasteServ {
   constructor(private wasteRepo: WasteRepo) {}
 
-  async createWaste(wasteDetails: createWasteDTO): Promise<Waste> {
-    if (!wasteDetails.userid)
+  async createWaste(
+    userId: string,
+    wasteDetails: createWasteDTO,
+  ): Promise<Waste> {
+    if (!userId)
       throw new Error("User id should be provided for product creation");
 
-    const allowedFields: string[] = ["userid", "location", "weight"];
+    const allowedFields: string[] = ["location", "weight"];
 
     let newProductData: Record<string, any> = {};
 
@@ -26,14 +29,17 @@ export class WasteService implements WasteServ {
       newProductData[key] = value;
     }
 
-    const newWaste: Waste = await this.wasteRepo.createWaste(wasteDetails);
+    const newWaste: Waste = await this.wasteRepo.createWaste(
+      userId,
+      wasteDetails,
+    );
 
     return newWaste;
   }
 
   async editWaste(newWasteDetails: editWasteDTO): Promise<Waste> {
     try {
-      const allowedFields: string[] = ["userid", "location", "weight"];
+      const allowedFields: string[] = ["location", "weight"];
 
       let newWasteObject: Record<string, any> = {};
 

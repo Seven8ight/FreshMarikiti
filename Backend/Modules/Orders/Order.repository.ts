@@ -16,13 +16,8 @@ export class OrderRepository implements OrderRepo {
   ): Promise<Order> {
     try {
       const orderItem: QueryResult<Order> = await this.DB.query(
-        "INSERT INTO orders(buyerId,products,quantity,status) VALUES($1,$2,$3,$4) RETURNING *",
-        [
-          userId,
-          JSON.stringify(orderDetails.products),
-          orderDetails.quantity,
-          orderDetails.status,
-        ],
+        "INSERT INTO orders(buyerId,products,status) VALUES($1,$2,$3) RETURNING *",
+        [userId, JSON.stringify(orderDetails.products), "Pending"],
       );
 
       if (orderItem.rowCount && orderItem.rowCount > 0)
@@ -42,21 +37,25 @@ export class OrderRepository implements OrderRepo {
         paramIndex = 2;
 
       for (let [key, value] of Object.entries(newOrderDetails)) {
+        if (key == "id") continue;
+
         keys.push(`${key}=$${paramIndex++}`);
-        values.push(value);
+
+        if (key == "products") values.push(JSON.stringify(value));
+        else values.push(value);
       }
 
-      const todoUpdate: QueryResult<Order> = await this.DB.query(
-        `UPDATE todos SET ${keys.join(",")} WHERE id=$1 RETURNING *`,
+      const orderUpdate: QueryResult<Order> = await this.DB.query(
+        `UPDATE orders SET ${keys.join(",")} WHERE id=$1 RETURNING *`,
         [newOrderDetails.id, ...values],
       );
 
-      if (todoUpdate.rowCount && todoUpdate.rowCount > 0)
-        return todoUpdate.rows[0]!;
+      if (orderUpdate.rowCount && orderUpdate.rowCount > 0)
+        return orderUpdate.rows[0]!;
 
-      throw new Error(`Todo item does not exist of id, ${newOrderDetails.id}`);
+      throw new Error(`Order item does not exist of id, ${newOrderDetails.id}`);
     } catch (error) {
-      warningMsg("Edit todo repo error occurred");
+      warningMsg("Edit order repo error occurred");
       throw error;
     }
   }
@@ -70,9 +69,9 @@ export class OrderRepository implements OrderRepo {
 
       if (orderRetrieval.rowCount && orderRetrieval.rowCount > 0)
         return orderRetrieval.rows[0]!;
-      throw new Error("Todo does not exist");
+      throw new Error("Order does not exist");
     } catch (error) {
-      warningMsg("Get todo repo error occurred");
+      warningMsg("Get order repo error occurred");
       throw error;
     }
   }
@@ -80,7 +79,7 @@ export class OrderRepository implements OrderRepo {
   async getOrdersByUser(userId: string): Promise<Order[]> {
     try {
       const retrievalOrderByUser: QueryResult<Order> = await this.DB.query(
-        "SELECT * FROM orders WHERE userId=$2",
+        "SELECT * FROM orders WHERE buyerid=$1",
         [userId],
       );
 
@@ -104,7 +103,7 @@ export class OrderRepository implements OrderRepo {
 
   async deleteUserOrders(userId: string): Promise<void> {
     try {
-      await this.DB.query(`DELETE FROM orders WHERE userId=$2`, [userId]);
+      await this.DB.query(`DELETE FROM orders WHERE buyerid=$1`, [userId]);
     } catch (error) {
       warningMsg("Delete user repo error occurred");
       throw error;

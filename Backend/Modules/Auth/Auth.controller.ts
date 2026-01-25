@@ -37,6 +37,17 @@ export const AuthController = (
       switch (pathNames[2]) {
         case "register":
           if (pathNames[3] == "legacy") {
+            if (request.method != "POST") {
+              response.writeHead(405);
+              response.end(
+                JSON.stringify({
+                  error: "Use POST instead",
+                }),
+              );
+
+              return;
+            }
+
             const registerLegacyUser = await authService.register(
               parsedRequestBody,
               {
@@ -127,6 +138,16 @@ export const AuthController = (
           break;
         case "login":
           if (pathNames[3] == "legacy") {
+            if (request.method != "POST") {
+              response.writeHead(405);
+              response.end(
+                JSON.stringify({
+                  error: "Use Post instead",
+                }),
+              );
+              return;
+            }
+
             const loginLegacyUser = await authService.login(
               parsedRequestBody,
               "legacy",

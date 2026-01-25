@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS products(
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    market_name TEXT NOT NULL UNIQUE,
+    market_id UUID REFERENCES market(id) NOT NULL,
     sellerId UUID NOT NULL REFERENCES users(id),
     description TEXT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
