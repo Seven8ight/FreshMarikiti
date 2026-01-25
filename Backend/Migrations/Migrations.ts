@@ -1,7 +1,11 @@
 import fs from "fs/promises";
 import path from "path";
-import { connectToDatabase, pgClient } from "../Config/Db";
+import { connectToDatabase, pgClient } from "../Config/Db.js";
 import { errorMsg, info, warningMsg } from "../Utils/Logger.js";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url),
+  __dirname = path.dirname(__filename);
 
 const migrationsDir = path.join(__dirname, "SQL Tables");
 
@@ -47,5 +51,6 @@ const migrationsDir = path.join(__dirname, "SQL Tables");
     errorMsg((error as Error).message);
 
     await pgClient.query("ROLLBACK");
+    process.exit(1);
   }
 })();
