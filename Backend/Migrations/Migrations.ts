@@ -11,24 +11,22 @@ const migrationsDir = path.join(__dirname, "SQL Tables");
 
 (async () => {
   try {
-    await pgClient.query("SELECT * FROM migrations");
-
-    info("Migrations table exists, moving to the next");
-  } catch (error) {
-    const migrationsSql = await fs.readFile(
-      path.join(migrationsDir, "000_create_migrations_table.sql"),
-      "utf-8",
-    );
-
-    await pgClient.query(migrationsSql);
-
-    info("Migrations table created");
-  }
-})();
-
-(async () => {
-  try {
     await connectToDatabase();
+
+    try {
+      await pgClient.query("SELECT * FROM migrations");
+
+      info("Migrations table exists, moving to the next");
+    } catch (error) {
+      const migrationsSql = await fs.readFile(
+        path.join(migrationsDir, "000_create_migrations_table.sql"),
+        "utf-8",
+      );
+
+      await pgClient.query(migrationsSql);
+
+      info("Migrations table created");
+    }
 
     const sqlFiles = (await fs.readdir(migrationsDir))
       .sort()

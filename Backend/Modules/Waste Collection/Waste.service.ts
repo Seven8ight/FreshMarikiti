@@ -4,8 +4,8 @@ import {
   WasteServ,
   createWasteDTO,
   editWasteDTO,
-} from "./Waste.types";
-import { warningMsg } from "../../Utils/Logger";
+} from "./Waste.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class WasteService implements WasteServ {
   constructor(private wasteRepo: WasteRepo) {}

@@ -1,6 +1,11 @@
 import { Client, QueryResult } from "pg";
-import { createWasteDTO, editWasteDTO, Waste, WasteRepo } from "./Waste.types";
-import { warningMsg } from "../../Utils/Logger";
+import {
+  createWasteDTO,
+  editWasteDTO,
+  Waste,
+  WasteRepo,
+} from "./Waste.types.js";
+import { warningMsg } from "../../Utils/Logger.js";
 
 export class WasteRepository implements WasteRepo {
   constructor(private DB: Client) {}

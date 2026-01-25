@@ -1,9 +1,9 @@
 import { IncomingMessage, ServerResponse } from "node:http";
-import { pgClient } from "../../Config/Db";
-import { verifyAccessToken } from "../../Utils/JWT";
-import { Waste } from "./Waste.types";
-import { WasteRepository } from "./Waste.repository";
-import { WasteService } from "./Waste.service";
+import { pgClient } from "../../Config/Db.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { Waste } from "./Waste.types.js";
+import { WasteRepository } from "./Waste.repository.js";
+import { WasteService } from "./Waste.service.js";
 
 export const WasteController = (
   request: IncomingMessage,
