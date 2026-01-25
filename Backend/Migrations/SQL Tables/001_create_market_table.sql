@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS market(
-    id UUID DEFAULT uuid_generate_v4() NOT NULL,
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
     name TEXT NOT NULL UNIQUE,
     location TEXT NOT NULL,
-    vendors INT NOT NULL DEFAULT 0
+    vendors INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );

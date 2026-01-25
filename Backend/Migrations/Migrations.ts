@@ -11,6 +11,23 @@ const migrationsDir = path.join(__dirname, "SQL Tables");
 
 (async () => {
   try {
+    await pgClient.query("SELECT * FROM migrations");
+
+    info("Migrations table exists, moving to the next");
+  } catch (error) {
+    const migrationsSql = await fs.readFile(
+      path.join(migrationsDir, "000_create_migrations_table.sql"),
+      "utf-8",
+    );
+
+    await pgClient.query(migrationsSql);
+
+    info("Migrations table created");
+  }
+})();
+
+(async () => {
+  try {
     await connectToDatabase();
 
     const sqlFiles = (await fs.readdir(migrationsDir))
@@ -49,6 +66,7 @@ const migrationsDir = path.join(__dirname, "SQL Tables");
   } catch (error) {
     warningMsg("Error at creating tables");
     errorMsg((error as Error).message);
+    console.log(error);
 
     await pgClient.query("ROLLBACK");
     process.exit(1);
