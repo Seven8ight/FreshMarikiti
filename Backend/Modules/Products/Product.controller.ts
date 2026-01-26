@@ -35,19 +35,6 @@ export const ProductController = (
     return;
   }
 
-  if (
-    !userVerifier.role.includes("vendor") ||
-    userVerifier.role.includes("admin")
-  ) {
-    response.writeHead(400);
-    response.end(
-      JSON.stringify({
-        error: "User does not have permission to use this api route",
-      }),
-    );
-    return;
-  }
-
   const userId = userVerifier.id;
 
   let unparsedRequestBody: string = "";
@@ -80,6 +67,19 @@ export const ProductController = (
             return;
           }
 
+          if (
+            !userVerifier.role.includes("vendor") ||
+            userVerifier.role.includes("admin")
+          ) {
+            response.writeHead(400);
+            response.end(
+              JSON.stringify({
+                error: "User does not have permission to use this api route",
+              }),
+            );
+            return;
+          }
+
           const createOperation: Product = await productService.createProduct(
             userId,
             parsedRequestBody,
@@ -94,6 +94,19 @@ export const ProductController = (
             response.end(
               JSON.stringify({
                 error: "Use PATCH instead",
+              }),
+            );
+            return;
+          }
+
+          if (
+            !userVerifier.role.includes("vendor") ||
+            userVerifier.role.includes("admin")
+          ) {
+            response.writeHead(400);
+            response.end(
+              JSON.stringify({
+                error: "User does not have permission to use this api route",
               }),
             );
             return;
@@ -177,6 +190,19 @@ export const ProductController = (
             response.end(
               JSON.stringify({
                 error: "Use DELETE instead",
+              }),
+            );
+            return;
+          }
+
+          if (
+            !userVerifier.role.includes("vendor") ||
+            userVerifier.role.includes("admin")
+          ) {
+            response.writeHead(400);
+            response.end(
+              JSON.stringify({
+                error: "User does not have permission to use this api route",
               }),
             );
             return;
