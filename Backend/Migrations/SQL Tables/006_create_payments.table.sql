@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS payments(
     merchant_request_id TEXT NOT NULL,
     checkout_request_id TEXT NOT NULL,
     order_id UUID NOT NULL REFERENCES orders(id),
-    phone_number TEXT NOT NULL 
+    phone_number TEXT NOT NULL,
     executed_at TIMESTAMP NOT NULL DEFAULT NOW(),
     amount INT NOT NULL,
     means_of_payment TEXT NOT NULL,
