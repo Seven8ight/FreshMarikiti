@@ -1,0 +1,1 @@
+const currencyExchange = (paymentResponse: any) => {};

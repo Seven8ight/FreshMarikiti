@@ -86,8 +86,10 @@ export const OrderController = (
             return;
           }
 
-          const editOperation =
-            await orderService.updateOrder(parsedRequestBody);
+          const editOperation = await orderService.updateOrder(
+            userId,
+            parsedRequestBody,
+          );
 
           response.writeHead(201);
           response.end(JSON.stringify(editOperation));

@@ -7,6 +7,7 @@ export type Order = {
   id: string;
   buyerid: string;
   products: OrderItem[];
+  riderid: string;
   status: "Rejected" | "Pending" | "Complete";
 };
 
@@ -15,7 +16,10 @@ export type updateOrderDTO = Pick<Order, "id"> & Partial<Order>;
 
 export interface OrderRepo {
   createOrder: (userId: string, orderDetails: createOrderDTO) => Promise<Order>;
-  updateOrder: (newOrderDetails: updateOrderDTO) => Promise<Order>;
+  updateOrder: (
+    userId: string,
+    newOrderDetails: updateOrderDTO,
+  ) => Promise<Order>;
   getOrderById: (orderId: string) => Promise<Order>;
   getOrdersByUser: (userId: string) => Promise<Order[]>;
   deleteOrder: (orderId: string) => Promise<void>;
@@ -24,7 +28,10 @@ export interface OrderRepo {
 
 export interface OrderServ {
   createOrder: (userId: string, orderDetails: createOrderDTO) => Promise<Order>;
-  updateOrder: (newOrderDetails: updateOrderDTO) => Promise<Order>;
+  updateOrder: (
+    userId: string,
+    newOrderDetails: updateOrderDTO,
+  ) => Promise<Order>;
   getOrderById: (orderId: string) => Promise<Order>;
   getOrdersByUser: (userId: string) => Promise<Order[]>;
   deleteOrder: (orderId: string) => Promise<void>;

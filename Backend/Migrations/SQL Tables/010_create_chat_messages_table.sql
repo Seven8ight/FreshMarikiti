@@ -1,4 +1,4 @@
-CREATE TABLE chat_messages (
+CREATE TABLE IF NOT EXISTS chat_messages (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,

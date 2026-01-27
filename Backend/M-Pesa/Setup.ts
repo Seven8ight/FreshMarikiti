@@ -1,4 +1,3 @@
-import { updateFunds } from "../Routes/CurrencyHandler";
 import { IncomingMessage, ServerResponse } from "http";
 import * as dotenv from "dotenv";
 import * as https from "https";
@@ -39,7 +38,7 @@ const Token = async (): Promise<any | Error> => {
     return new Promise((resolve, reject) => {
       let returnToken: any = "",
         basicAuthToken = Buffer.from(
-          `${consumerKey}:${consumerSecret}`
+          `${consumerKey}:${consumerSecret}`,
         ).toString("base64"),
         requestToken = https.request(
           "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
@@ -56,7 +55,7 @@ const Token = async (): Promise<any | Error> => {
             response.on("error", (error) => {
               reject(error);
             });
-          }
+          },
         );
 
       requestToken.on("error", (error) => {
@@ -64,7 +63,7 @@ const Token = async (): Promise<any | Error> => {
       });
       requestToken.on(
         "end",
-        () => (returnToken = JSON.parse(JSON.stringify(returnToken)))
+        () => (returnToken = JSON.parse(JSON.stringify(returnToken))),
       );
       requestToken.on("close", () => {
         returnToken && resolve(returnToken);
@@ -75,7 +74,7 @@ const Token = async (): Promise<any | Error> => {
   },
   makePayment = async (
     phoneNumber: string,
-    amount: number
+    amount: number,
   ): Promise<any | Error> => {
     const phonenumber = phoneNumber.includes("254")
         ? phoneNumber
@@ -90,7 +89,7 @@ const Token = async (): Promise<any | Error> => {
         currentDate.getMinutes().toString().padStart(2, "0") +
         currentDate.getSeconds().toString().padStart(2, "0"),
       password = Buffer.from(
-        (((shortCode as string) + passKey) as string) + timeStamp
+        (((shortCode as string) + passKey) as string) + timeStamp,
       ).toString("base64");
 
     return new Promise((resolve, reject) => {
@@ -116,7 +115,7 @@ const Token = async (): Promise<any | Error> => {
                 console.log(JSON.parse(data.toString()));
                 resolve(data.toString());
               });
-            }
+            },
           );
 
           paymentRequest.write(
@@ -132,7 +131,7 @@ const Token = async (): Promise<any | Error> => {
               CallBackURL: callbackURL,
               AccountReference: "Test",
               TransactionDesc: "Test",
-            })
+            }),
           );
 
           paymentRequest.on("error", (error) => reject(error));
@@ -146,7 +145,7 @@ const Token = async (): Promise<any | Error> => {
 
 export const Payment = async (
     request: IncomingMessage,
-    response: ServerResponse<IncomingMessage>
+    response: ServerResponse<IncomingMessage>,
   ) => {
     let paymentInfo: any = "";
 
@@ -160,13 +159,13 @@ export const Payment = async (
         if (!paymentInfo.amount || !paymentInfo.phonenumber) {
           response.writeHead(409);
           response.end(
-            "Incomplete credentials, pass in a phonenumber and amount, ensure key fields are in small letters"
+            "Incomplete credentials, pass in a phonenumber and amount, ensure key fields are in small letters",
           );
         } else {
           new Promise(async (resolve, reject) => {
             let PaymentProcess = await makePayment(
               paymentInfo.phonenumber,
-              paymentInfo.amount
+              paymentInfo.amount,
             );
 
             if (PaymentProcess instanceof Error == false)
@@ -181,21 +180,21 @@ export const Payment = async (
               response.writeHead(500);
               response.end(
                 "Error in creating the payment request, please try again later" +
-                  error.message
+                  error.message,
               );
             });
         }
       } else {
         response.writeHead(409);
         response.end(
-          "Ensure you pass in payment details i.e. phonenumber and amount"
+          "Ensure you pass in payment details i.e. phonenumber and amount",
         );
       }
     });
   },
   Redirect = async (
     request: IncomingMessage,
-    response: ServerResponse<IncomingMessage>
+    response: ServerResponse<IncomingMessage>,
   ) => {
     try {
       let paymentResponse: any = "";
@@ -212,30 +211,29 @@ export const Payment = async (
             ].Value;
 
         if (ResultCode == "0") {
-          let processFunds = await updateFunds(global.User as string, amount);
-
-          switch (processFunds) {
-            case "Successful update":
-              response.writeHead(200);
-              response.end("Successful payment");
-              break;
-            case "User does not exist in the database":
-              response.writeHead(404);
-              response.end("User is not in the database");
-              break;
-            case "Non-existent user":
-              response.writeHead(401);
-              response.end("Expired token passed in, please log in again");
-              break;
-            case "Incomplete credentials":
-              response.writeHead(409);
-              response.end("Incomplete credentials passed in");
-              break;
-            default:
-              response.writeHead(500);
-              response.end("Server failure, please try again");
-              break;
-          }
+          // let processFunds = await updateFunds(global.User as string, amount);
+          // switch (processFunds) {
+          //   case "Successful update":
+          //     response.writeHead(200);
+          //     response.end("Successful payment");
+          //     break;
+          //   case "User does not exist in the database":
+          //     response.writeHead(404);
+          //     response.end("User is not in the database");
+          //     break;
+          //   case "Non-existent user":
+          //     response.writeHead(401);
+          //     response.end("Expired token passed in, please log in again");
+          //     break;
+          //   case "Incomplete credentials":
+          //     response.writeHead(409);
+          //     response.end("Incomplete credentials passed in");
+          //     break;
+          //   default:
+          //     response.writeHead(500);
+          //     response.end("Server failure, please try again");
+          //     break;
+          // }
         } else {
           response.writeHead(405);
           response.end("Payment did not go through, try again");

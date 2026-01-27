@@ -6,6 +6,8 @@ import {
 } from "./Order.types.js";
 import { OrderRepository } from "./Order.repository.js";
 import { warningMsg } from "../../Utils/Logger.js";
+import { UserRepository } from "../Users/User.repository.js";
+import { pgClient } from "../../Config/Db.js";
 
 export class OrderService implements OrderServ {
   constructor(private orderRepo: OrderRepository) {}
@@ -33,13 +35,22 @@ export class OrderService implements OrderServ {
     return newOrder;
   }
 
-  async updateOrder(newOrderDetails: updateOrderDTO) {
+  async updateOrder(userId: string, newOrderDetails: updateOrderDTO) {
     if (!newOrderDetails.id) throw new Error("Order id not provided");
 
     try {
-      const allowedFields: string[] = ["products", "status"];
+      const allowedFields: string[] = ["products", "status", "riderid"];
 
       let newOrderObject: Record<string, any> = {};
+
+      if (newOrderDetails.riderid) {
+        const getUserRole = await new UserRepository(pgClient).getUserById(
+          userId,
+        );
+
+        if (!getUserRole.role.includes("connector"))
+          throw new Error("User does not have permission to update resource");
+      }
 
       for (let [key, value] of Object.entries(newOrderDetails)) {
         if (!allowedFields.includes(key.toLowerCase())) continue;
@@ -53,6 +64,7 @@ export class OrderService implements OrderServ {
       newOrderObject["id"] = newOrderDetails.id;
 
       const updatedOrder = await this.orderRepo.updateOrder(
+        userId,
         newOrderObject as updateOrderDTO,
       );
 

@@ -16,7 +16,7 @@ export class OrderRepository implements OrderRepo {
   ): Promise<Order> {
     try {
       const orderItem: QueryResult<Order> = await this.DB.query(
-        "INSERT INTO orders(buyerId,products,status) VALUES($1,$2,$3) RETURNING *",
+        "INSERT INTO orders(buyerid,products,status) VALUES($1,$2,$3) RETURNING *",
         [userId, JSON.stringify(orderDetails.products), "Pending"],
       );
 
@@ -25,12 +25,15 @@ export class OrderRepository implements OrderRepo {
 
       throw new Error("Order creation failed, try again");
     } catch (error) {
-      warningMsg(`Error at creating todo repo`);
+      warningMsg(`Error at creating order repo`);
       throw error;
     }
   }
 
-  async updateOrder(newOrderDetails: updateOrderDTO): Promise<Order> {
+  async updateOrder(
+    userId: string,
+    newOrderDetails: updateOrderDTO,
+  ): Promise<Order> {
     try {
       let keys: string[] = [],
         values: any[] = [],
@@ -85,9 +88,9 @@ export class OrderRepository implements OrderRepo {
 
       if (retrievalOrderByUser.rowCount && retrievalOrderByUser.rowCount > 0)
         return retrievalOrderByUser.rows;
-      throw new Error("Todo does not exist");
+      throw new Error("Order does not exist");
     } catch (error) {
-      warningMsg("Get todo repo error occurred");
+      warningMsg("Get order repo error occurred");
       throw error;
     }
   }
@@ -96,7 +99,7 @@ export class OrderRepository implements OrderRepo {
     try {
       await this.DB.query(`DELETE FROM orders WHERE id=$1`, [orderId]);
     } catch (error) {
-      warningMsg("Delete user repo error occurred");
+      warningMsg("Delete order repo error occurred");
       throw error;
     }
   }
@@ -105,7 +108,7 @@ export class OrderRepository implements OrderRepo {
     try {
       await this.DB.query(`DELETE FROM orders WHERE buyerid=$1`, [userId]);
     } catch (error) {
-      warningMsg("Delete user repo error occurred");
+      warningMsg("Delete user order repo error occurred");
       throw error;
     }
   }

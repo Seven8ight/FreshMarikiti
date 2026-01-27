@@ -1,4 +1,4 @@
-CREATE TABLE chats (
+CREATE TABLE IF NOT EXISTS chats (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
   context_type TEXT NOT NULL
