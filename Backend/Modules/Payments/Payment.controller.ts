@@ -4,88 +4,129 @@ import { PaymentRepository } from "./Payment.repository.js";
 import { PaymentService } from "./Payment.service.js";
 import { pgClient } from "../../Config/Db.js";
 
-export const PaymentController = (
+export const PaymentController = async (
   request: IncomingMessage,
-  response: ServerResponse<IncomingMessage>,
+  response: ServerResponse,
 ) => {
-  const requestUrl = new URL(request.url!, `http://${request.headers.host}`),
-    pathName = requestUrl.pathname,
-    { authorization } = request.headers;
+  const requestUrl = new URL(request.url!, `http://${request.headers.host}`);
+  const pathName = requestUrl.pathname.split("/").filter(Boolean);
 
   let unparsedRequestBody = "";
 
-  const paymentRepo = new PaymentRepository(pgClient),
-    paymentService = new PaymentService(paymentRepo);
+  // 1. Collect Request Body
+  request.on("data", (chunk) => {
+    unparsedRequestBody += chunk.toString();
+  });
 
-  request.on(
-    "data",
-    (data: Buffer) => (unparsedRequestBody += data.toString()),
-  );
+  request.on("end", async () => {
+    try {
+      const parsedRequestBody = JSON.parse(unparsedRequestBody || "{}");
 
-  request.on("end", () => {
-    if (unparsedRequestBody.length == 0) unparsedRequestBody = "{}";
-    let parsedRequestBody = JSON.parse(unparsedRequestBody);
+      // Initialize Services
+      const paymentRepo = new PaymentRepository(pgClient);
+      const paymentService = new PaymentService(paymentRepo);
 
-    switch (pathName[2]) {
-      case "mpesa":
-        switch (pathName[3]) {
-          case "initiate":
-            const paymentProcess = makePayment(
-              parsedRequestBody.phoneNumber,
-              parsedRequestBody.amount,
-            );
-            //parsedRequestbody contains order_id,amount and phone number and means of payment
-            parsedRequestBody["means_of_payment"] = "mpesa";
-            parsedRequestBody["status"] = "Pending";
+      // Routing Logic
+      switch (pathName[2]) {
+        case "mpesa":
+          switch (pathName[3]) {
+            case "initiate":
+              try {
+                // IMPORTANT: You must await the M-Pesa API call
+                const mpesaResponse = await makePayment(
+                  parsedRequestBody.phone_number,
+                  parsedRequestBody.amount,
+                );
 
-            paymentService.createReceipt(parsedRequestBody);
-            break;
-          case "redirect":
-            const paymentResponse = parsedRequestBody;
-            let { Body } = paymentResponse,
-              { ResultCode, CallbackMetadata } = Body.stkCallback,
-              amount =
-                CallbackMetadata.Item[
-                  CallbackMetadata.Item.findIndex(
-                    (item: any) => item.Name == "Amount",
-                  )
-                ].Value;
+                // If makePayment succeeded, create the record in your DB
+                await paymentService.createReceipt({
+                  ...parsedRequestBody,
+                  means_of_payment: "mpesa",
+                  status: "Pending",
+                  merchant_request_id: mpesaResponse.MerchantRequestID, // Store this to track the callback
+                  checkout_request_id: mpesaResponse.CheckoutRequestID,
+                });
 
-            if (ResultCode == "0") {
-              paymentService.editReceipt({
-                phone_number: paymentResponse.phoneNumber,
-                status: "Completed",
-              });
+                response.writeHead(200, { "Content-Type": "application/json" });
+                response.end(
+                  JSON.stringify({
+                    message: "STK Push sent successfully",
+                    data: mpesaResponse,
+                  }),
+                );
+              } catch (mpesaError: any) {
+                response.writeHead(400, { "Content-Type": "application/json" });
+                response.end(
+                  JSON.stringify({
+                    error: "M-Pesa Initiation Failed",
+                    details: mpesaError.errorMessage || mpesaError.message,
+                  }),
+                );
+              }
+              break;
 
-              response.writeHead(200);
+            case "redirect":
+              console.log("M-Pesa Callback Received:", parsedRequestBody);
+
+              const { Body } = parsedRequestBody;
+              const { ResultCode, CheckoutRequestID, CallbackMetadata } =
+                Body.stkCallback;
+
+              if (ResultCode === 0) {
+                const items = CallbackMetadata.Item;
+
+                await paymentService.editReceipt({
+                  checkout_request_id: CheckoutRequestID,
+                  status: "Completed",
+                  phone_number: CallbackMetadata[4].Value,
+                });
+
+                response.writeHead(200);
+                response.end(
+                  JSON.stringify({ ResultCode: 0, ResultDesc: "Success" }),
+                );
+              } else {
+                // Payment failed or cancelled by user
+                await paymentService.editReceipt({
+                  checkout_request_id: CheckoutRequestID,
+                  status: "Rejected",
+                });
+
+                response.writeHead(200); // Safaricom expects 200 even for failed payments
+                response.end(
+                  JSON.stringify({ ResultCode: 1, ResultDesc: "Acknowledged" }),
+                );
+              }
+              break;
+
+            default:
+              response.writeHead(404);
               response.end(
-                JSON.stringify({
-                  message: "Payment successful",
-                }),
+                JSON.stringify({ error: "M-Pesa sub-route not found" }),
               );
-              return;
-            } else {
-              response.writeHead(402);
-              response.end(
-                JSON.stringify({
-                  message: "Payment not successful",
-                }),
-              );
-              return;
-            }
-        }
+          }
+          break;
 
-        break;
-      case "bank":
-        switch (pathName[3]) {
-          case "initiate":
-            break;
-          case "redirect":
-            break;
-        }
-        break;
-      case "biocoins":
-        break;
+        case "bank":
+          response.writeHead(501);
+          response.end(
+            JSON.stringify({ message: "Bank integration not implemented" }),
+          );
+          break;
+
+        default:
+          response.writeHead(404);
+          response.end(JSON.stringify({ error: "Invalid payment method" }));
+      }
+    } catch (error: any) {
+      console.error("Controller Error:", error);
+      response.writeHead(500);
+      response.end(
+        JSON.stringify({
+          error: "Internal Server Error",
+          details: error.message,
+        }),
+      );
     }
   });
 };

@@ -13,6 +13,7 @@ export class PaymentService implements PaymentSer {
     const allowedFields: string[] = [
       "order_id",
       "amount",
+      "phone_number",
       "means_of_payment",
       "status",
     ];
@@ -35,7 +36,12 @@ export class PaymentService implements PaymentSer {
 
   async editReceipt(newPaymentDetails: updatePaymentDTO): Promise<Payment> {
     try {
-      const allowedFields: string[] = ["phone_number", "status"];
+      const allowedFields: string[] = [
+        "phone_number",
+        "status",
+        "merchant_request_id",
+        "checkount_request_id",
+      ];
 
       let newProductObject: Record<string, any> = {};
 
@@ -53,7 +59,7 @@ export class PaymentService implements PaymentSer {
 
       return updatedPayment;
     } catch (error) {
-      warningMsg("Edit user service error occurred");
+      warningMsg("Edit payment service error occurred");
       throw error;
     }
   }

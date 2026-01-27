@@ -8,12 +8,15 @@ export class PaymentRepository implements PaymentRepo {
   async createReceipt(paymentData: any): Promise<Payment> {
     try {
       const create: QueryResult<Payment> = await this.DB.query(
-        "INSERT INTO payments(order_id,amount,means_of_payment,status) VALUES($1,$2,$3,$4 RETURNING *",
+        "INSERT INTO payments(order_id,phone_number,amount,means_of_payment,status,merchant_request_id,checkout_request_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
         [
           paymentData.order_id,
+          paymentData.phone_number,
           paymentData.amount,
           paymentData.means_of_payment,
           paymentData.status,
+          paymentData.merchant_request_id,
+          paymentData.checkout_request_id,
         ],
       );
 
@@ -21,6 +24,7 @@ export class PaymentRepository implements PaymentRepo {
       throw new Error("Error in creating transaction");
     } catch (error) {
       warningMsg("Error at payment repo, creating receipt");
+      console.log(error);
       throw error;
     }
   }
@@ -29,26 +33,26 @@ export class PaymentRepository implements PaymentRepo {
     try {
       let keys: string[] = [],
         values: any[] = [],
-        paramIndex = 3;
-
+        paramIndex = 2;
+      console.log(newPaymentDetails);
       for (let [key, value] of Object.entries(newPaymentDetails)) {
         keys.push(`${key}=$${paramIndex++}`);
         values.push(value);
       }
 
       const paymentUpdate: QueryResult<Payment> = await this.DB.query(
-        `UPDATE payments SET ${keys.join(",")} WHERE phone_number=$1 RETURNING *`,
-        [newPaymentDetails.phone_number],
+        `UPDATE payments SET ${keys.join(",")} WHERE checkout_request_id=$1 RETURNING *`,
+        [newPaymentDetails.checkout_request_id, ...values],
       );
 
       if (paymentUpdate.rowCount && paymentUpdate.rowCount > 0)
         return paymentUpdate.rows[0]!;
 
       throw new Error(
-        `Payment item does not exist from phone number, ${newPaymentDetails.phone_number}.`,
+        `Payment item does not exist from checkout request id, ${newPaymentDetails.checkout_request_id}.`,
       );
     } catch (error) {
-      warningMsg("Product todo repo error occurred");
+      warningMsg("Payment edit repo error occurred");
       throw error;
     }
   }

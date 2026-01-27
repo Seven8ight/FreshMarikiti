@@ -50,70 +50,81 @@ export const generateMpesaToken = async (): Promise<any | Error> => {
 export const makePayment = async (
   phoneNumber: string,
   amount: number,
-): Promise<any | Error> => {
-  const phonenumber = phoneNumber.includes("254")
-      ? phoneNumber
-      : "254" + phoneNumber.slice(1),
-    token = await generateMpesaToken(),
-    currentDate = new Date(),
-    timeStamp =
-      currentDate.getFullYear().toString() +
-      (currentDate.getMonth() + 1).toString().padStart(2, "0") +
-      currentDate.getDate().toString().padStart(2, "0") +
-      currentDate.getHours().toString().padStart(2, "0") +
-      currentDate.getMinutes().toString().padStart(2, "0") +
-      currentDate.getSeconds().toString().padStart(2, "0"),
-    password = Buffer.from(
-      (((MPESA_SHORTCODE as string) + MPESA_PASSKEY) as string) + timeStamp,
-    ).toString("base64");
+): Promise<any> => {
+  // 1. Format Phone Number (Ensure 2547XXXXXXXX)
+  const formattedPhone = phoneNumber.startsWith("254")
+    ? phoneNumber
+    : "254" + phoneNumber.slice(-9);
+
+  // 2. Generate strictly formatted 14-digit Timestamp: YYYYMMDDHHmmss
+  const date = new Date();
+  const timeStamp = [
+    date.getFullYear(),
+    (date.getMonth() + 1).toString().padStart(2, "0"),
+    date.getDate().toString().padStart(2, "0"),
+    date.getHours().toString().padStart(2, "0"),
+    date.getMinutes().toString().padStart(2, "0"),
+    date.getSeconds().toString().padStart(2, "0"),
+  ].join("");
+
+  // 3. Get Token and Credentials
+  const tokenRaw = await generateMpesaToken();
+  const accessToken = JSON.parse(tokenRaw).access_token;
+  const shortCode = "174379"; // Standard Sandbox Shortcode
+
+  // 4. Generate Password
+  const password = Buffer.from(shortCode + MPESA_PASSKEY + timeStamp).toString(
+    "base64",
+  );
+
+  const postData = JSON.stringify({
+    BusinessShortCode: shortCode,
+    Password: password,
+    Timestamp: timeStamp,
+    TransactionType: "CustomerPayBillOnline",
+    Amount: Math.round(amount), // Sandbox prefers integers
+    PartyA: formattedPhone,
+    PartyB: shortCode,
+    PhoneNumber: formattedPhone,
+    CallBackURL: MPESA_CALLBACK_URL,
+    AccountReference: "Fresh Marikiti",
+    TransactionDesc: "Payment for services",
+  });
 
   return new Promise((resolve, reject) => {
-    try {
-      if (token instanceof Error == false) {
-        let paymentRequest = https.request(
-          "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
-          {
-            method: "POST",
-            headers: {
-              accept: "application/json",
-              "content-type": "application/json",
-              authorization: ` Bearer ${
-                (JSON.parse(token) as any).access_token
-              }`,
-            },
-          },
-          (response: IncomingMessage) => {
-            response.on("error", (error) => {
-              reject(error);
-            });
-            response.on("data", (data: Buffer) => {
-              console.log(JSON.parse(data.toString()));
-              resolve(data.toString());
-            });
-          },
-        );
+    const options = {
+      hostname: "sandbox.safaricom.co.ke",
+      path: "/mpesa/stkpush/v1/processrequest",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Length": Buffer.byteLength(postData),
+      },
+    };
 
-        paymentRequest.write(
-          JSON.stringify({
-            BusinessShortCode: MPESA_SHORTCODE,
-            Password: password,
-            Timestamp: timeStamp,
-            TransactionType: "CustomerPayBillOnline",
-            Amount: amount,
-            PartyA: phonenumber,
-            PartyB: MPESA_SHORTCODE,
-            PhoneNumber: phonenumber,
-            CallBackURL: MPESA_CALLBACK_URL,
-            AccountReference: "Test",
-            TransactionDesc: "Test",
-          }),
-        );
+    const req = https.request(options, (res) => {
+      let responseBody = "";
 
-        paymentRequest.on("error", (error) => reject(error));
-        paymentRequest.end();
-      } else return "Error occured in creating token";
-    } catch (error) {
-      reject(error);
-    }
+      res.on("data", (chunk) => (responseBody += chunk));
+
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(responseBody);
+          // If Safaricom returns an error code in the body
+          if (parsed.errorMessage || parsed.errorCode) {
+            reject(parsed);
+          } else {
+            resolve(parsed);
+          }
+        } catch (e) {
+          reject(new Error("Failed to parse M-Pesa response"));
+        }
+      });
+    });
+
+    req.on("error", (err) => reject(err));
+    req.write(postData);
+    req.end();
   });
 };
