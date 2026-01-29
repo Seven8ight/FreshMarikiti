@@ -6,13 +6,17 @@ import {
 import { PaymentRepository } from "../Payment.repository.js";
 import { pgClient } from "../../../Config/Db.js";
 import { PaymentService } from "../Payment.service.js";
+import { UserRepository } from "../../Users/User.repository.js";
+import { UserService } from "../../Users/User.service.js";
 
 const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
 });
 
 const paymentRepo = new PaymentRepository(pgClient),
-  paymentService = new PaymentService(paymentRepo);
+  paymentService = new PaymentService(paymentRepo),
+  userRepo = new UserRepository(pgClient),
+  userService = new UserService(userRepo);
 
 export const MakeBankPayment = async (amount: number) =>
     await stripe.paymentIntents.create({
@@ -70,6 +74,14 @@ export const MakeBankPayment = async (amount: number) =>
           paymentService.editReceipt({
             stripe_payment_intent_id: paymentIntentId as string,
             status: "Rejected",
+          });
+
+          const getReceipt = await paymentService.getReceipt(
+            paymentIntentId as string,
+          );
+
+          userService.editUser(getReceipt.phone_number, {
+            biocoins: Number.parseInt(getReceipt.amount),
           });
 
           console.log(`💰 Charge Succeeded for ${paymentIntentId}!`);

@@ -85,7 +85,7 @@ export class PaymentRepository implements PaymentRepo {
   async getReceipt(receiptId: string): Promise<Payment> {
     try {
       const getReceipt: QueryResult<Payment> = await this.DB.query(
-        "SELECT * FROM payments WHERE checkout_request_id=$1",
+        "SELECT * FROM payments WHERE checkout_request_id=$1 or stripe_payment_intent_id=$1",
         [receiptId],
       );
 
