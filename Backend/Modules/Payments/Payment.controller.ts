@@ -3,6 +3,10 @@ import { makePayment } from "./M-Pesa/Setup.js";
 import { PaymentRepository } from "./Payment.repository.js";
 import { PaymentService } from "./Payment.service.js";
 import { pgClient } from "../../Config/Db.js";
+import { UserRepository } from "../Users/User.repository.js";
+import { UserService } from "../Users/User.service.js";
+import { EditUserFunds, ReversalRequestForCash } from "./Biocoins/Exchange.js";
+import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 
 export const PaymentController = async (
   request: IncomingMessage,
@@ -23,8 +27,8 @@ export const PaymentController = async (
       const parsedRequestBody = JSON.parse(unparsedRequestBody || "{}");
 
       // Initialize Services
-      const paymentRepo = new PaymentRepository(pgClient);
-      const paymentService = new PaymentService(paymentRepo);
+      const paymentRepo = new PaymentRepository(pgClient),
+        paymentService = new PaymentService(paymentRepo);
 
       // Routing Logic
       switch (pathName[2]) {
@@ -66,27 +70,25 @@ export const PaymentController = async (
               break;
 
             case "redirect":
-              console.log("M-Pesa Callback Received:", parsedRequestBody);
-
-              const { Body } = parsedRequestBody;
-              const { ResultCode, CheckoutRequestID, CallbackMetadata } =
-                Body.stkCallback;
+              const { Body } = parsedRequestBody,
+                { ResultCode, CheckoutRequestID, CallbackMetadata } =
+                  Body.stkCallback;
 
               if (ResultCode === 0) {
-                const items = CallbackMetadata.Item;
-
                 await paymentService.editReceipt({
                   checkout_request_id: CheckoutRequestID,
                   status: "Completed",
-                  phone_number: CallbackMetadata[4].Value,
                 });
+
+                const user = await paymentService.getReceipt(CheckoutRequestID);
+
+                EditUserFunds(user.phone_number, Number.parseInt(user.amount));
 
                 response.writeHead(200);
                 response.end(
                   JSON.stringify({ ResultCode: 0, ResultDesc: "Success" }),
                 );
               } else {
-                // Payment failed or cancelled by user
                 await paymentService.editReceipt({
                   checkout_request_id: CheckoutRequestID,
                   status: "Rejected",
@@ -108,10 +110,74 @@ export const PaymentController = async (
           break;
 
         case "bank":
-          response.writeHead(501);
-          response.end(
-            JSON.stringify({ message: "Bank integration not implemented" }),
-          );
+          switch (pathName[3]) {
+            case "initiate":
+              const { phone_number, amount, order_id } = parsedRequestBody,
+                newAmount = amount * 100;
+
+              if (!phone_number || !amount) {
+                response.writeHead(400);
+                response.end(
+                  JSON.stringify({
+                    error:
+                      "Ensure to provide phone number(phone_number) and amount",
+                  }),
+                );
+                return;
+              }
+
+              const paymentIntent = await MakeBankPayment(newAmount);
+
+              const paymentData: Record<string, any> = {
+                phone_number: phone_number,
+                amount: newAmount,
+                order_id: order_id,
+                means_of_payment: "Bank",
+                stripe_payment_intent_id: paymentIntent.client_secret,
+                status: "Pending",
+              };
+
+              paymentService.createReceipt(paymentData);
+
+              response.writeHead(200);
+              response.end(JSON.stringify(paymentIntent.client_secret));
+
+              break;
+            case "redirect":
+              const stripeSignature = request.headers["stripe-signature"];
+
+              StripeWebHookHandler(
+                unparsedRequestBody,
+                stripeSignature as string,
+              );
+
+              response.writeHead(200);
+              response.end(
+                JSON.stringify({
+                  message: "Received successfully",
+                }),
+              );
+
+              break;
+          }
+          break;
+
+        case "reversal":
+          switch (pathName[3]) {
+            case "request":
+              const makeRequest = await ReversalRequestForCash(
+                parsedRequestBody.phone_number,
+                parsedRequestBody.amount,
+              );
+
+              response.writeHead(201);
+              response.end(JSON.stringify(makeRequest));
+              break;
+            case "update":
+              break;
+            default:
+              break;
+          }
           break;
 
         default:

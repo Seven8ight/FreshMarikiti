@@ -7,24 +7,40 @@ export class PaymentRepository implements PaymentRepo {
 
   async createReceipt(paymentData: any): Promise<Payment> {
     try {
-      const create: QueryResult<Payment> = await this.DB.query(
-        "INSERT INTO payments(order_id,phone_number,amount,means_of_payment,status,merchant_request_id,checkout_request_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
-        [
-          paymentData.order_id,
-          paymentData.phone_number,
-          paymentData.amount,
-          paymentData.means_of_payment,
-          paymentData.status,
-          paymentData.merchant_request_id,
-          paymentData.checkout_request_id,
-        ],
-      );
+      if (paymentData.means_of_payment == "mpesa") {
+        const create: QueryResult<Payment> = await this.DB.query(
+          "INSERT INTO payments(order_id,phone_number,amount,means_of_payment,status,merchant_request_id,checkout_request_id) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING *",
+          [
+            paymentData.order_id,
+            paymentData.phone_number,
+            paymentData.amount,
+            paymentData.means_of_payment,
+            paymentData.status,
+            paymentData.merchant_request_id,
+            paymentData.checkout_request_id,
+          ],
+        );
 
-      if (create.rowCount && create.rowCount >= 0) return create.rows[0];
-      throw new Error("Error in creating transaction");
+        if (create.rowCount && create.rowCount >= 0) return create.rows[0];
+        throw new Error("Error in creating transaction");
+      } else {
+        const create: QueryResult<Payment> = await this.DB.query(
+          "INSERT INTO payments(order_id,phone_number,amount,means_of_payment,status,stripe_payment_intent_id) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",
+          [
+            paymentData.order_id,
+            paymentData.phone_number,
+            paymentData.amount,
+            paymentData.means_of_payment,
+            paymentData.status,
+            paymentData.stripe_payment_intent_id,
+          ],
+        );
+
+        if (create.rowCount && create.rowCount >= 0) return create.rows[0];
+        throw new Error("Error in creating transaction");
+      }
     } catch (error) {
       warningMsg("Error at payment repo, creating receipt");
-      console.log(error);
       throw error;
     }
   }
@@ -34,22 +50,31 @@ export class PaymentRepository implements PaymentRepo {
       let keys: string[] = [],
         values: any[] = [],
         paramIndex = 2;
-      console.log(newPaymentDetails);
+
+      let paymentUpdate: QueryResult<Payment>;
+
       for (let [key, value] of Object.entries(newPaymentDetails)) {
         keys.push(`${key}=$${paramIndex++}`);
         values.push(value);
       }
 
-      const paymentUpdate: QueryResult<Payment> = await this.DB.query(
-        `UPDATE payments SET ${keys.join(",")} WHERE checkout_request_id=$1 RETURNING *`,
-        [newPaymentDetails.checkout_request_id, ...values],
-      );
+      if (keys.includes("checkout_request_id")) {
+        paymentUpdate = await this.DB.query(
+          `UPDATE payments SET ${keys.join(",")} WHERE checkout_request_id=$1 RETURNING *`,
+          [newPaymentDetails.checkout_request_id, ...values],
+        );
+      } else {
+        paymentUpdate = await this.DB.query(
+          `UPDATE payments SET ${keys.join(",")} WHERE stripe_payment_intent_id=$1 RETURNING *`,
+          [newPaymentDetails.stripe_payment_intent_id, ...values],
+        );
+      }
 
       if (paymentUpdate.rowCount && paymentUpdate.rowCount > 0)
         return paymentUpdate.rows[0]!;
 
       throw new Error(
-        `Payment item does not exist from checkout request id, ${newPaymentDetails.checkout_request_id}.`,
+        `Payment item does not exist from checkout request id/stripe_payment_intent_id, ${newPaymentDetails.checkout_request_id || newPaymentDetails.stripe_payment_intent_id}.`,
       );
     } catch (error) {
       warningMsg("Payment edit repo error occurred");
@@ -60,7 +85,7 @@ export class PaymentRepository implements PaymentRepo {
   async getReceipt(receiptId: string): Promise<Payment> {
     try {
       const getReceipt: QueryResult<Payment> = await this.DB.query(
-        "SELECT * FROM payments WHERE id=$1",
+        "SELECT * FROM payments WHERE checkout_request_id=$1",
         [receiptId],
       );
 

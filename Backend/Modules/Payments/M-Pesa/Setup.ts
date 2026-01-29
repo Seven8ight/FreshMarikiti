@@ -103,15 +103,15 @@ export const makePayment = async (
       },
     };
 
-    const req = https.request(options, (res) => {
+    const request = https.request(options, (response) => {
       let responseBody = "";
 
-      res.on("data", (chunk) => (responseBody += chunk));
+      response.on("data", (chunk) => (responseBody += chunk));
 
-      res.on("end", () => {
+      response.on("end", () => {
         try {
           const parsed = JSON.parse(responseBody);
-          // If Safaricom returns an error code in the body
+
           if (parsed.errorMessage || parsed.errorCode) {
             reject(parsed);
           } else {
@@ -123,8 +123,8 @@ export const makePayment = async (
       });
     });
 
-    req.on("error", (err) => reject(err));
-    req.write(postData);
-    req.end();
+    request.on("error", (err) => reject(err));
+    request.write(postData);
+    request.end();
   });
 };
