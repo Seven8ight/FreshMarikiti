@@ -39,6 +39,7 @@ export class AuthService implements AuthServ {
         "email",
         "password",
         "profileimage",
+        "phone_number",
         "oauth",
         "oauthprovider",
       ];

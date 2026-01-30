@@ -38,6 +38,8 @@ export class WasteService implements WasteServ {
   }
 
   async editWaste(newWasteDetails: editWasteDTO): Promise<Waste> {
+    if (!newWasteDetails.id) throw new Error("Waste id must be provided");
+
     try {
       const allowedFields: string[] = ["location", "weight"];
 
@@ -79,7 +81,7 @@ export class WasteService implements WasteServ {
   }
 
   async getUserWaste(userId: string): Promise<Waste[]> {
-    if (!userId) throw new Error("Category not provided for retrieval");
+    if (!userId) throw new Error("User id not provided for retrieval");
 
     try {
       const retrieveWasteByUserID = await this.wasteRepo.getUserWaste(userId);

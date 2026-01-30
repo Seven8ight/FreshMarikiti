@@ -2,7 +2,6 @@ export type Feedback = {
   id: string;
   userid: string;
   comment: string;
-  category: string;
   productid: string;
   rating: number;
 };

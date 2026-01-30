@@ -161,19 +161,19 @@ export const OrderController = (
           }
 
           if (typeDeletion == "one") {
-            const productId = searchDeletionParams.get("productid");
+            const orderid = searchDeletionParams.get("orderid");
 
-            if (!productId) {
+            if (!orderid) {
               response.writeHead(404);
               response.end(
                 JSON.stringify({
-                  error: "Provide product id in the search params",
+                  error: "Provide order id in the search params",
                 }),
               );
               return;
             }
 
-            await orderService.deleteOrder(userId);
+            await orderService.deleteOrder(orderid);
 
             response.writeHead(204);
             response.end();

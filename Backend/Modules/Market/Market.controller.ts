@@ -58,9 +58,7 @@ export const MarketController = async (
   );
 
   request.on("end", async () => {
-    if (unparsedRequestBody.length == 0) unparsedRequestBody = "{}";
-
-    const parsedRequestBody = JSON.parse(unparsedRequestBody);
+    const parsedRequestBody = JSON.parse(unparsedRequestBody || "{}");
 
     switch (pathNames[2]) {
       case "create":

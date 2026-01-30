@@ -3,8 +3,6 @@ import { makePayment } from "./M-Pesa/Setup.js";
 import { PaymentRepository } from "./Payment.repository.js";
 import { PaymentService } from "./Payment.service.js";
 import { pgClient } from "../../Config/Db.js";
-import { UserRepository } from "../Users/User.repository.js";
-import { UserService } from "../Users/User.service.js";
 import { EditUserFunds, ReversalRequestForCash } from "./Biocoins/Exchange.js";
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 
@@ -26,23 +24,19 @@ export const PaymentController = async (
     try {
       const parsedRequestBody = JSON.parse(unparsedRequestBody || "{}");
 
-      // Initialize Services
       const paymentRepo = new PaymentRepository(pgClient),
         paymentService = new PaymentService(paymentRepo);
 
-      // Routing Logic
       switch (pathName[2]) {
         case "mpesa":
           switch (pathName[3]) {
             case "initiate":
               try {
-                // IMPORTANT: You must await the M-Pesa API call
                 const mpesaResponse = await makePayment(
                   parsedRequestBody.phone_number,
                   parsedRequestBody.amount,
                 );
 
-                // If makePayment succeeded, create the record in your DB
                 await paymentService.createReceipt({
                   ...parsedRequestBody,
                   means_of_payment: "mpesa",
@@ -71,8 +65,7 @@ export const PaymentController = async (
 
             case "redirect":
               const { Body } = parsedRequestBody,
-                { ResultCode, CheckoutRequestID, CallbackMetadata } =
-                  Body.stkCallback;
+                { ResultCode, CheckoutRequestID } = Body.stkCallback;
 
               if (ResultCode === 0) {
                 await paymentService.editReceipt({

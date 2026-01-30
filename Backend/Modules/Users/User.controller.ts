@@ -82,32 +82,10 @@ export const UserController = (
             return;
           }
 
-          const searchParams = requestUrl.searchParams,
-            type = searchParams.get("type");
+          const userBody = await Userservice.getUserById(userId);
 
-          if (!type) {
-            response.writeHead(400);
-            response.end(
-              JSON.stringify({
-                error: "Provide type in search params (type=(email or id))",
-              }),
-            );
-          }
-
-          if (type == "id") {
-            const userBody = await Userservice.getUserById(userId);
-
-            response.writeHead(200);
-            response.end(JSON.stringify(userBody));
-          } else if (type == "email") {
-            const userBody = await Userservice.getUserByEmail(
-              userVerifier.email,
-            );
-
-            response.writeHead(200);
-            response.end(JSON.stringify(userBody));
-          }
-
+          response.writeHead(200);
+          response.end(JSON.stringify(userBody));
           break;
         case "delete":
           if (request.method != "DELETE") {

@@ -135,7 +135,7 @@ export const WasteController = (
 
             response.writeHead(200);
             response.end(JSON.stringify(retrieveProductById));
-          } else throw new Error("Type should be either id,category or all");
+          } else throw new Error("Type should be either one, all or user");
 
           break;
         case "delete":
