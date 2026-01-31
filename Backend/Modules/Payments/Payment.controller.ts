@@ -3,7 +3,12 @@ import { makePayment } from "./M-Pesa/Setup.js";
 import { PaymentRepository } from "./Payment.repository.js";
 import { PaymentService } from "./Payment.service.js";
 import { pgClient } from "../../Config/Db.js";
-import { EditUserFunds, ReversalRequestForCash } from "./Biocoins/Exchange.js";
+import {
+  EditUserFunds,
+  ReversalRequestForCash,
+  Transact,
+  UpdateReversalRequest,
+} from "./Biocoins/Exchange.js";
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 
 export const PaymentController = async (
@@ -15,7 +20,6 @@ export const PaymentController = async (
 
   let unparsedRequestBody = "";
 
-  // 1. Collect Request Body
   request.on("data", (chunk) => {
     unparsedRequestBody += chunk.toString();
   });
@@ -155,22 +159,53 @@ export const PaymentController = async (
           }
           break;
 
-        case "reversal":
+        case "biocoins":
           switch (pathName[3]) {
-            case "request":
-              const makeRequest = await ReversalRequestForCash(
-                parsedRequestBody.phone_number,
-                parsedRequestBody.amount,
+            case "transact":
+              await Transact(parsedRequestBody);
+
+              response.writeHead(200);
+              response.end(
+                JSON.stringify({
+                  message: "Order successful transacted",
+                }),
               );
 
-              response.writeHead(201);
-              response.end(JSON.stringify(makeRequest));
               break;
-            case "update":
-              break;
-            default:
+            case "reversal":
+              switch (pathName[4]) {
+                case "request":
+                  const makeRequest = await ReversalRequestForCash(
+                    parsedRequestBody.phone_number,
+                    parsedRequestBody.amount,
+                  );
+
+                  response.writeHead(201);
+                  response.end(JSON.stringify(makeRequest));
+                case "update":
+                  const { status, phone_number } = parsedRequestBody,
+                    updateReverseStatus = await UpdateReversalRequest(
+                      phone_number,
+                      status,
+                    );
+
+                  response.writeHead(200);
+                  response.end(JSON.stringify(updateReverseStatus));
+                  break;
+                default:
+                  response.writeHead(404);
+                  response.end(
+                    JSON.stringify({
+                      error:
+                        "Invalid route, default route here try /request or /update",
+                    }),
+                  );
+                  break;
+              }
+
               break;
           }
+
           break;
 
         default:
@@ -178,7 +213,6 @@ export const PaymentController = async (
           response.end(JSON.stringify({ error: "Invalid payment method" }));
       }
     } catch (error: any) {
-      console.error("Controller Error:", error);
       response.writeHead(500);
       response.end(
         JSON.stringify({

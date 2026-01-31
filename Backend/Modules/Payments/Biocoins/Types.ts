@@ -5,3 +5,9 @@ export type ReversalRequest = {
   amount: number;
   created_at: string;
 };
+
+export type Transaction = {
+  buyerid: string;
+  productid: string;
+  quantity: number;
+};

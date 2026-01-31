@@ -1,7 +1,15 @@
 import { QueryResult } from "pg";
 import { pgClient } from "../../../Config/Db.js";
 import { User } from "../../Users/User.types.js";
-import { ReversalRequest } from "./Types.js";
+import { ReversalRequest, Transaction } from "./Types.js";
+import { Product } from "../../Products/Product.types.js";
+import { ProductRepository } from "../../Products/Product.repository.js";
+import { UserRepository } from "../../Users/User.repository.js";
+import { Order } from "../../Orders/Order.types.js";
+import { privateDecrypt } from "crypto";
+
+const UserRepo = new UserRepository(pgClient),
+  ProductRepo = new ProductRepository(pgClient);
 
 export const EditUserFunds = async (phone_number: string, amount: number) => {
     try {
@@ -18,18 +26,63 @@ export const EditUserFunds = async (phone_number: string, amount: number) => {
       throw error;
     }
   },
+  Transact = async (Orders: Order) => {
+    const buyer = await UserRepo.getUserById(Orders.buyerid);
+
+    Orders.products.map(async (item) => {
+      try {
+        const product = await ProductRepo.getProductById(item.id),
+          seller = await UserRepo.getUserById(product.sellerId);
+
+        const totalAmount = product.amount * item.quantity;
+
+        if (buyer.biocoins < totalAmount) throw new Error("Insufficient funds");
+
+        const buyerBioCoins = buyer.biocoins - totalAmount,
+          sellerBioCoins = seller.biocoins + totalAmount;
+
+        await pgClient.query("UPDATE users SET biocoins=$1 WHERE id=$2", [
+          buyerBioCoins,
+          buyer.id,
+        ]);
+
+        await pgClient.query("UPDATE users SET biocoins=$1 WHERE id=$2", [
+          sellerBioCoins,
+          seller.id,
+        ]);
+      } catch (error) {
+        throw error;
+      }
+    });
+  },
   ReversalRequestForCash = async (phone_number: string, amount: number) => {
     try {
-      const storeReveseRequest: QueryResult<ReversalRequest> =
+      const storeReverseRequest: QueryResult<ReversalRequest> =
         await pgClient.query(
           "INSERT INTO reverse_funds(phone_number,amount,status) VALUES($1,$2,$3) RETURNING *",
           [phone_number, amount, "Pending"],
         );
 
-      if (storeReveseRequest.rowCount && storeReveseRequest.rowCount > 0)
-        return storeReveseRequest.rows[0];
+      if (storeReverseRequest.rowCount && storeReverseRequest.rowCount > 0)
+        return storeReverseRequest.rows[0];
 
       throw new Error("Error occured in creating reversal request, try again");
+    } catch (error) {
+      throw error;
+    }
+  },
+  UpdateReversalRequest = async (phone_number: string, status: string) => {
+    try {
+      const updateReverseStatus: QueryResult<ReversalRequest> =
+        await pgClient.query(
+          "UPDATE reverse_funds SET status=$1 WHERE phone_number=$2 RETURNING *",
+          [status, phone_number],
+        );
+
+      if (updateReverseStatus.rowCount && updateReverseStatus.rowCount > 0)
+        return updateReverseStatus.rows[0];
+
+      throw new Error("Error in updating status");
     } catch (error) {
       throw error;
     }
