@@ -7,8 +7,10 @@ import { ProductRepository } from "../../Products/Product.repository.js";
 import { UserRepository } from "../../Users/User.repository.js";
 import { Order } from "../../Orders/Order.types.js";
 import { privateDecrypt } from "crypto";
+import { OrderRepository } from "../../Orders/Order.repository.js";
 
 const UserRepo = new UserRepository(pgClient),
+  OrderRepo = new OrderRepository(pgClient),
   ProductRepo = new ProductRepository(pgClient);
 
 export const EditUserFunds = async (phone_number: string, amount: number) => {
@@ -26,10 +28,11 @@ export const EditUserFunds = async (phone_number: string, amount: number) => {
       throw error;
     }
   },
-  Transact = async (Orders: Order) => {
-    const buyer = await UserRepo.getUserById(Orders.buyerid);
+  Transact = async (OrderId: string) => {
+    const Order = await OrderRepo.getOrderById(OrderId),
+      buyer = await UserRepo.getUserById(Order.buyerid);
 
-    Orders.products.map(async (item) => {
+    Order.products.map(async (item) => {
       try {
         const product = await ProductRepo.getProductById(item.id),
           seller = await UserRepo.getUserById(product.sellerId);
@@ -71,12 +74,12 @@ export const EditUserFunds = async (phone_number: string, amount: number) => {
       throw error;
     }
   },
-  UpdateReversalRequest = async (phone_number: string, status: string) => {
+  UpdateReversalRequest = async (id: string, status: string) => {
     try {
       const updateReverseStatus: QueryResult<ReversalRequest> =
         await pgClient.query(
-          "UPDATE reverse_funds SET status=$1 WHERE phone_number=$2 RETURNING *",
-          [status, phone_number],
+          "UPDATE reverse_funds SET status=$1 WHERE id=$2 RETURNING *",
+          [status, id],
         );
 
       if (updateReverseStatus.rowCount && updateReverseStatus.rowCount > 0)

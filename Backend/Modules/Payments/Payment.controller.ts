@@ -10,13 +10,16 @@ import {
   UpdateReversalRequest,
 } from "./Biocoins/Exchange.js";
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
+import { verifyAccessToken } from "../../Utils/JWT.js";
+import { User } from "../Users/User.types.js";
 
 export const PaymentController = async (
   request: IncomingMessage,
   response: ServerResponse,
 ) => {
-  const requestUrl = new URL(request.url!, `http://${request.headers.host}`);
-  const pathName = requestUrl.pathname.split("/").filter(Boolean);
+  const requestUrl = new URL(request.url!, `http://${request.headers.host}`),
+    pathName = requestUrl.pathname.split("/").filter(Boolean),
+    { authorization } = request.headers;
 
   let unparsedRequestBody = "";
 
@@ -162,7 +165,7 @@ export const PaymentController = async (
         case "biocoins":
           switch (pathName[3]) {
             case "transact":
-              await Transact(parsedRequestBody);
+              await Transact(parsedRequestBody.id);
 
               response.writeHead(200);
               response.end(
@@ -183,9 +186,20 @@ export const PaymentController = async (
                   response.writeHead(201);
                   response.end(JSON.stringify(makeRequest));
                 case "update":
-                  const { status, phone_number } = parsedRequestBody,
+                  if (!authorization)
+                    throw new Error("Auth token not provided");
+
+                  const userToken = authorization?.split(" ")[1],
+                    userObject = verifyAccessToken(userToken as string);
+
+                  if (!(userObject as User).role.includes("admin"))
+                    throw new Error(
+                      "User does not have permission to access this route",
+                    );
+
+                  const { id, status } = parsedRequestBody,
                     updateReverseStatus = await UpdateReversalRequest(
-                      phone_number,
+                      id,
                       status,
                     );
 
@@ -212,12 +226,11 @@ export const PaymentController = async (
           response.writeHead(404);
           response.end(JSON.stringify({ error: "Invalid payment method" }));
       }
-    } catch (error: any) {
-      response.writeHead(500);
+    } catch (error) {
+      response.writeHead(400);
       response.end(
         JSON.stringify({
-          error: "Internal Server Error",
-          details: error.message,
+          error: (error as Error).message,
         }),
       );
     }
