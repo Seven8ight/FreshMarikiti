@@ -16,6 +16,8 @@ export class PaymentService implements PaymentSer {
       "phone_number",
       "means_of_payment",
       "status",
+      "merchant_request_id",
+      "checkout_request_id",
     ];
 
     let newPaymentData: Record<string, any> = {};

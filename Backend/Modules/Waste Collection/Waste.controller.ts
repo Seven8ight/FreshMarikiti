@@ -4,6 +4,7 @@ import { verifyAccessToken } from "../../Utils/JWT.js";
 import { Waste } from "./Waste.types.js";
 import { WasteRepository } from "./Waste.repository.js";
 import { WasteService } from "./Waste.service.js";
+import { PublicUser } from "../Users/User.types.js";
 
 export const WasteController = (
   request: IncomingMessage,
@@ -23,19 +24,30 @@ export const WasteController = (
     return;
   }
 
-  const userVerifier = verifyAccessToken(authorization.split(" ")[1] as string);
+  const userVerifier: PublicUser = verifyAccessToken(
+    authorization.split(" ")[1] as string,
+  );
 
   if (!userVerifier) {
     response.writeHead(403);
     response.end(
       JSON.stringify({
-        error: "Authentication failed, re-log in",
+        error: "Invalid access token, try logging in",
       }),
     );
     return;
   }
 
   const userId = userVerifier.id;
+
+  if (!userVerifier.role.includes("admin")) {
+    response.writeHead(403);
+    return response.end(
+      JSON.stringify({
+        error: "Unauthorized to access this resource",
+      }),
+    );
+  }
 
   let unparsedRequestBody: string = "";
 

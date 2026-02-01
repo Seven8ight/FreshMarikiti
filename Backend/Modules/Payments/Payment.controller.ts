@@ -11,7 +11,7 @@ import {
 } from "./Biocoins/Exchange.js";
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 import { verifyAccessToken } from "../../Utils/JWT.js";
-import { User } from "../Users/User.types.js";
+import { PublicUser, User } from "../Users/User.types.js";
 
 export const PaymentController = async (
   request: IncomingMessage,
@@ -20,6 +20,19 @@ export const PaymentController = async (
   const requestUrl = new URL(request.url!, `http://${request.headers.host}`),
     pathName = requestUrl.pathname.split("/").filter(Boolean),
     { authorization } = request.headers;
+
+  if (!authorization) {
+    response.writeHead(401);
+    response.end(
+      JSON.stringify({
+        error: "User is not authenticated, auth token missing",
+      }),
+    );
+    return;
+  }
+
+  const userToken = authorization.split(" ")[1],
+    user: PublicUser = verifyAccessToken(userToken);
 
   let unparsedRequestBody = "";
 
@@ -40,12 +53,13 @@ export const PaymentController = async (
             case "initiate":
               try {
                 const mpesaResponse = await makePayment(
-                  parsedRequestBody.phone_number,
+                  user.phone_number,
                   parsedRequestBody.amount,
                 );
 
                 await paymentService.createReceipt({
                   ...parsedRequestBody,
+                  phone_number: user.phone_number,
                   means_of_payment: "mpesa",
                   status: "Pending",
                   merchant_request_id: mpesaResponse.MerchantRequestID, // Store this to track the callback
@@ -186,13 +200,7 @@ export const PaymentController = async (
                   response.writeHead(201);
                   response.end(JSON.stringify(makeRequest));
                 case "update":
-                  if (!authorization)
-                    throw new Error("Auth token not provided");
-
-                  const userToken = authorization?.split(" ")[1],
-                    userObject = verifyAccessToken(userToken as string);
-
-                  if (!(userObject as User).role.includes("admin"))
+                  if (!user.role.includes("admin"))
                     throw new Error(
                       "User does not have permission to access this route",
                     );
