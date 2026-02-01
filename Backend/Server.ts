@@ -32,7 +32,7 @@ const server = http.createServer(
       Router(request, response);
     },
   ),
-  socketIo = new Server({
+  socketIo = new Server(server, {
     cors: { origin: "*" },
   });
 
