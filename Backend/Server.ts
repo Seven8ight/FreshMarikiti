@@ -7,8 +7,30 @@ import { Server } from "socket.io";
 import { registerChatSocket } from "./Modules/Chats/Chat.socket.js";
 
 const server = http.createServer(
-    (request: IncomingMessage, response: ServerResponse<IncomingMessage>) =>
-      Router(request, response),
+    (request: IncomingMessage, response: ServerResponse<IncomingMessage>) => {
+      response.setHeader("Access-Control-Allow-Origin", "*");
+      response.setHeader(
+        "Access-Control-Allow-Methods",
+        "GET, POST, PATCH, DELETE, OPTIONS",
+      );
+      response.setHeader(
+        "Access-Control-Allow-Headers",
+        "Content-Type, Authorization, X-Requested-With",
+      );
+      response.setHeader("Access-Control-Max-Age", "86400");
+
+      if (request.method === "OPTIONS") {
+        response.writeHead(204, {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS",
+          "Access-Control-Allow-Headers":
+            "Content-Type, Authorization, X-Requested-With",
+        });
+        return response.end();
+      }
+
+      Router(request, response);
+    },
   ),
   socketIo = new Server({
     cors: { origin: "*" },
