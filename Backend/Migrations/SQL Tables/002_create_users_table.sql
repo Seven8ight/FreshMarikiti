@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS users (
   market_id UUID REFERENCES market(id) ON DELETE SET NULL,
   stall_number TEXT,
 
-  phone_number TEXT,
+  phone_number TEXT UNIQUE,
 
   created_at TIMESTAMP DEFAULT NOW()
 );
+

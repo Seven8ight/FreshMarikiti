@@ -1,5 +1,6 @@
 import { warningMsg } from "../../Utils/Logger.js";
 import {
+  Identifier,
   Payment,
   PaymentRepo,
   PaymentSer,
@@ -72,6 +73,36 @@ export class PaymentService implements PaymentSer {
     const getReceipt: Payment = await this.paymentRepo.getReceipt(receiptId);
 
     return getReceipt;
+  }
+
+  async getUserReceipts(identifier: Identifier) {
+    if (!identifier.id && !identifier.phone_number)
+      throw new Error(
+        "User id or user phone number must be provided must be provided",
+      );
+
+    try {
+      const userReceipts = await this.paymentRepo.getUserReceipts(identifier),
+        bankStatements = userReceipts.map((transaction) => {
+          if (transaction.means_of_payment == "bank") {
+            const { merchant_request_id, checkout_request_id, ...statement } =
+              transaction;
+
+            return statement;
+          }
+        }),
+        mpesaStatements = userReceipts.map((transaction) => {
+          if (transaction.means_of_payment == "mpesa") {
+            const { stripe_payment_intent_id, ...statement } = transaction;
+
+            return statement;
+          }
+        });
+
+      return [...bankStatements, ...mpesaStatements];
+    } catch (error) {
+      throw error;
+    }
   }
 
   async getAllReceipts(): Promise<Payment[]> {

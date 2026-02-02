@@ -1,5 +1,10 @@
 import { Client, QueryResult } from "pg";
-import { Payment, PaymentRepo, updatePaymentDTO } from "./Payment.types.js";
+import {
+  Identifier,
+  Payment,
+  PaymentRepo,
+  updatePaymentDTO,
+} from "./Payment.types.js";
 import { warningMsg } from "../../Utils/Logger.js";
 
 export class PaymentRepository implements PaymentRepo {
@@ -94,6 +99,31 @@ export class PaymentRepository implements PaymentRepo {
       throw new Error(`Payment of receipt, ${receiptId} does not exist`);
     } catch (error) {
       warningMsg("Error at payment repo, getting receipt");
+      throw error;
+    }
+  }
+
+  async getUserReceipts(identifier: Identifier): Promise<Payment[]> {
+    let userReceipts: QueryResult<Payment>;
+
+    try {
+      if (identifier.id)
+        userReceipts = await this.DB.query(
+          "SELECT * FROM payments where user_id=$1",
+          [identifier.id],
+        );
+      else
+        userReceipts = await this.DB.query(
+          "SELECT * FROM payments where phone_number=$1",
+          [identifier.id],
+        );
+
+      if (userReceipts.rowCount && userReceipts.rowCount > 0)
+        return userReceipts.rows;
+
+      throw new Error("Receipts for user, ${userData} not found");
+    } catch (error) {
+      warningMsg("Error at getting user receipts");
       throw error;
     }
   }

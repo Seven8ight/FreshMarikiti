@@ -12,6 +12,7 @@ import {
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 import { verifyAccessToken } from "../../Utils/JWT.js";
 import { PublicUser, User } from "../Users/User.types.js";
+import { sendNotification } from "../Notifications/Notifications.setup.js";
 
 export const PaymentController = async (
   request: IncomingMessage,
@@ -228,6 +229,18 @@ export const PaymentController = async (
               break;
           }
 
+          break;
+
+        case "history":
+          const getUserReceipts =
+            await paymentService.getUserReceipts(parsedRequestBody);
+
+          response.writeHead(200);
+          response.end(
+            JSON.stringify({
+              getUserReceipts,
+            }),
+          );
           break;
 
         default:

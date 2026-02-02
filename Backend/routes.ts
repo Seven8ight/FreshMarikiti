@@ -8,6 +8,7 @@ import { OrderController } from "./Modules/Orders/Order.controller.js";
 import { WasteController } from "./Modules/Waste Collection/Waste.controller.js";
 import { MarketController } from "./Modules/Market/Market.controller.js";
 import { ChatController } from "./Modules/Chats/Chat.controller.js";
+import { NotificationController } from "./Modules/Notifications/Notifications.controller.js";
 
 type Route = {
   pathname: string;
@@ -54,6 +55,10 @@ export default function Routes(): Route[] {
     {
       pathname: "chats",
       controller: ChatController,
+    },
+    {
+      pathname: "notifications",
+      controller: NotificationController,
     },
   ];
 }
