@@ -20,6 +20,8 @@ export class UserService implements Userservice {
       goals: userData.goals,
       phone_number: userData.phone_number,
       role: userData.role,
+      market_id: userData.market_id,
+      stallNumber: userData.stallNumber,
     };
   }
 
@@ -40,14 +42,8 @@ export class UserService implements Userservice {
 
       let newUserObject: Record<string, any> = {};
 
-      if (newUserData.role) {
-        const user = await this.UserRepo.getUserById(userId);
-
-        if (!user.role.includes("admin"))
-          throw new Error(
-            "You do not have permission to add/update roles, only admins can",
-          );
-      }
+      if (newUserData.role && newUserData.role.includes("admin"))
+        throw new Error("Unauthorized to do so");
 
       for (let [key, value] of Object.entries(newUserData)) {
         if (!allowedFields.includes(key.toLowerCase())) continue;

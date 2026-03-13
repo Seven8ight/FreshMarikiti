@@ -14,48 +14,44 @@ export class UserRepository implements UserRepo {
       let values: any[] = [];
       let paramIndex = 2;
 
-      const { role, action = "add", ...rest } = newUserData;
+      const { role, ...rest } = newUserData;
 
-      // Normal fields
       for (let [key, value] of Object.entries(rest)) {
         if (key === "password") value = hashPassword(value as string);
         keys.push(`${key}=$${paramIndex++}`);
         values.push(value);
       }
 
-      // Role handling (SPECIAL CASE)
-      if (role) {
+      if (keys.length === 0) throw new Error("No fields provided for update");
+
+      if (role && role.role) {
         if (
-          !["customer", "vendor", "rider", "connector", "admin"].includes(role)
+          !["customer", "vendor", "rider", "connector", "admin"].includes(
+            role.role,
+          )
         ) {
           throw new Error("Invalid role");
         }
 
-        if (action === "remove")
+        if (role.action === "remove")
           keys.push(`roles = array_remove(roles, $${paramIndex++})`);
         else keys.push(`roles = array_append(roles, $${paramIndex++})`);
 
-        values.push(role);
+        values.push(role.role);
       }
 
-      if (keys.length === 0) {
-        throw new Error("No fields provided for update");
-      }
+      if (keys.includes("market_id")) {
+        const marketService = new MarketService(
+            new MarketRepository(this.pgClient),
+          ),
+          marketId = keys.findIndex((value) => value == "market_id");
 
-      if (keys.includes("marketid")) {
-        if (action == "add") {
-          const marketService = new MarketService(
-              new MarketRepository(this.pgClient),
-            ),
-            marketId = keys.findIndex((value) => value == "marketid");
+        let getMarket = await marketService.getMarket(values[marketId]);
 
-          let getMarket = await marketService.getMarket(values[marketId]);
-
-          marketService.editMarket({
-            id: values[marketId],
-            vendors: getMarket.vendors++,
-          });
-        }
+        marketService.editMarket({
+          id: values[marketId],
+          vendors: getMarket.vendors++,
+        });
       }
 
       const userUpdate = await this.pgClient.query(
