@@ -38,6 +38,8 @@ export class UserService implements Userservice {
         "phone_number",
         "goals",
         "action",
+        "market_id",
+        "stallnumber",
       ];
 
       let newUserObject: Record<string, any> = {};
