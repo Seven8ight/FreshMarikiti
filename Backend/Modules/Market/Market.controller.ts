@@ -36,17 +36,6 @@ export const MarketController = async (
     return;
   }
 
-  if (!userVerifier.roles.includes("admin")) {
-    response.writeHead(400);
-    response.end(
-      JSON.stringify({
-        error: "User does not have priviledged permissions",
-      }),
-    );
-
-    return;
-  }
-
   let unparsedRequestBody: string = "";
 
   const marketRepo = new MarketRepository(pgClient),
