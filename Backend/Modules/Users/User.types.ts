@@ -26,10 +26,20 @@ export type loginType = "google" | "legacy";
 
 export type PublicUser = Omit<User, "password" | "oAuth" | "oAuthProvider">;
 
-export type updateUserDTO = Omit<
-  Partial<User>,
-  "id" | "oAuth" | "oAuthProvider"
->;
+export type updateUserDTO = {
+  username?: string;
+  email?: string;
+  password?: string;
+  profileImage?: string;
+  goals?: string;
+  role?: {
+    role: Array<"rider" | "customer" | "vendor" | "connector" | "admin">;
+    action: "add" | "remove";
+  };
+  market_id?: string;
+  stallNumber?: string;
+  phone_number?: string;
+};
 
 export interface UserRepo {
   editUser: (userId: string, newUserData: updateUserDTO) => Promise<User>;

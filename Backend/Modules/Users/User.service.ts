@@ -44,7 +44,7 @@ export class UserService implements Userservice {
 
       let newUserObject: Record<string, any> = {};
 
-      if (newUserData.role && newUserData.role.includes("admin"))
+      if (newUserData.role && newUserData.role.role.includes("admin"))
         throw new Error("Unauthorized to do so");
 
       for (let [key, value] of Object.entries(newUserData)) {
@@ -57,7 +57,10 @@ export class UserService implements Userservice {
         else newUserObject[key] = value;
       }
 
-      const updatedUser = await this.UserRepo.editUser(userId, newUserObject);
+      const updatedUser = await this.UserRepo.editUser(
+        userId,
+        newUserObject as any,
+      );
 
       return this.createPublicUser(updatedUser);
     } catch (error) {

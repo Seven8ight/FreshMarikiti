@@ -42,6 +42,19 @@ export const ProductController = (
   const productRepo = new ProductRepository(pgClient),
     productService = new ProductService(productRepo);
 
+  if (
+    !userVerifier.role.includes("vendor") &&
+    !userVerifier.role.includes("admin")
+  ) {
+    response.writeHead(400);
+    response.end(
+      JSON.stringify({
+        error: "User does not have permission to use this api route",
+      }),
+    );
+    return;
+  }
+
   request.on(
     "data",
     (buffer: Buffer) => (unparsedRequestBody += buffer.toString()),
@@ -62,19 +75,6 @@ export const ProductController = (
             response.end(
               JSON.stringify({
                 error: "Use POST instead",
-              }),
-            );
-            return;
-          }
-
-          if (
-            !userVerifier.role.includes("vendor") ||
-            !userVerifier.role.includes("admin")
-          ) {
-            response.writeHead(400);
-            response.end(
-              JSON.stringify({
-                error: "User does not have permission to use this api route",
               }),
             );
             return;
