@@ -20,5 +20,6 @@ CREATE TABLE IF NOT EXISTS users (
   phone_number TEXT UNIQUE,
 
   created_at TIMESTAMP DEFAULT NOW()
+  deleted_at TIMESTAMP
 );
 

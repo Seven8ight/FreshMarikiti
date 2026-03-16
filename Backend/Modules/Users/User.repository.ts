@@ -4,6 +4,9 @@ import { warningMsg } from "./../../Utils/Logger.js";
 import { hashPassword } from "./../../Utils/Password.js";
 import { MarketService } from "../Market/Market.service.js";
 import { MarketRepository } from "../Market/Market.repository.js";
+import { ProductRepository } from "../Products/Product.repository.js";
+import { OrderRepository } from "../Orders/Order.repository.js";
+import { FeedbackRepository } from "../Feedback/Feedback.repository.js";
 
 export class UserRepository implements UserRepo {
   constructor(private pgClient: Client) {}
@@ -102,7 +105,11 @@ export class UserRepository implements UserRepo {
 
   async deleteUser(userId: string) {
     try {
-      await this.pgClient.query(`DELETE FROM users WHERE id=$1`, [userId]);
+      const date = new Date();
+
+      await this.pgClient.query(`UPDATE users SET deleted_at=$1`, [
+        date.toUTCString(),
+      ]);
     } catch (error) {
       warningMsg("Delete user repo error occurred");
       throw error;

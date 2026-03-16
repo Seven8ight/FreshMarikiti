@@ -129,4 +129,14 @@ export class AuthRepository implements AuthRepo {
       throw error;
     }
   }
+
+  async deleteUserTokens(userId: string) {
+    try {
+      await pgClient.query("DELETE FROM refresh_tokens WHERE user_id=$1", [
+        userId,
+      ]);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
