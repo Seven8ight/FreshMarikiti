@@ -7,7 +7,6 @@ import {
 } from "./Product.types.js";
 import { warningMsg } from "../../Utils/Logger.js";
 import { UserRepository } from "../Users/User.repository.js";
-import { warn } from "console";
 
 export class ProductRepository implements ProductRepo {
   constructor(private DB: Client) {}
