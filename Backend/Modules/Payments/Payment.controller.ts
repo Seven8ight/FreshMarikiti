@@ -11,7 +11,7 @@ import {
 } from "./Biocoins/Exchange.js";
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 import { verifyAccessToken } from "../../Utils/JWT.js";
-import { PublicUser, User } from "../Users/User.types.js";
+import { PublicUser } from "../Users/User.types.js";
 import { sendNotification } from "../Notifications/Notifications.setup.js";
 
 export const PaymentController = async (
