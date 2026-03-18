@@ -125,6 +125,19 @@ export const AuthController = (
 
               googleTokenRequest.write(postData);
               googleTokenRequest.end();
+            } else if (pathNames[4] == "mobile") {
+              const oauthUser: createUserDTO = {
+                  username: parsedRequestBody.name,
+                  email: parsedRequestBody.email,
+                  profileImage: parsedRequestBody.photo,
+                },
+                encryptedGoogleUser = await authService.register(oauthUser, {
+                  type: "oAuth",
+                  provider: "google",
+                });
+
+              response.writeHead(201);
+              response.end(JSON.stringify(encryptedGoogleUser));
             }
           } else {
             response.writeHead(400);
@@ -220,6 +233,19 @@ export const AuthController = (
 
               googleTokenRequest.write(postData);
               googleTokenRequest.end();
+            } else if (pathNames[4] == "mobile") {
+              const oauthUser: createUserDTO = {
+                  username: parsedRequestBody.name,
+                  email: parsedRequestBody.email,
+                  profileImage: parsedRequestBody.photo,
+                },
+                encryptedGoogleUser = await authService.login(
+                  oauthUser,
+                  "google",
+                );
+
+              response.writeHead(201);
+              response.end(JSON.stringify(encryptedGoogleUser));
             }
           } else {
             response.writeHead(400);
