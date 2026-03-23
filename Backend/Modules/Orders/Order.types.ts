@@ -7,6 +7,7 @@ export type Order = {
   id: string;
   buyerid: string;
   products: OrderItem[];
+  connectorid: string;
   riderid: string;
   status: "Rejected" | "Pending" | "Complete";
 };

@@ -39,7 +39,12 @@ export class OrderService implements OrderServ {
     if (!newOrderDetails.id) throw new Error("Order id not provided");
 
     try {
-      const allowedFields: string[] = ["products", "status", "riderid"];
+      const allowedFields: string[] = [
+        "products",
+        "status",
+        "riderid",
+        "connectorid",
+      ];
 
       let newOrderObject: Record<string, any> = {};
 
