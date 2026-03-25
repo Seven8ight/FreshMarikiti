@@ -95,11 +95,43 @@ export const MarketController = async (
           return;
         }
 
-        const getMarketVendors: PublicUser[] =
-          await marketService.getMarketVendors(parsedRequestBody.id);
+        const searchParams = requestUrl.searchParams,
+          type = searchParams.get("type");
 
-        response.writeHead(200);
-        response.end(JSON.stringify(getMarketVendors));
+        if (type == "all") {
+          const allMarkets = await marketService.getMarkets();
+
+          response.writeHead(200);
+          response.end(JSON.stringify(allMarkets));
+        } else if (type == "vendors") {
+          const marketId = searchParams.get("marketid");
+
+          if (!marketId) {
+            response.writeHead(404);
+            response.end(
+              JSON.stringify({
+                error: "Market id not provided",
+              }),
+            );
+
+            return;
+          }
+
+          const getMarketVendors: PublicUser[] =
+            await marketService.getMarketVendors(parsedRequestBody.id);
+
+          response.writeHead(200);
+          response.end(JSON.stringify(getMarketVendors));
+        } else if (type == "market") {
+          const marketDetails = await marketService.getMarket(
+            parsedRequestBody.id,
+          );
+
+          response.writeHead(200);
+          response.end(JSON.stringify(marketDetails));
+        }
+
+        break;
       case "delete":
         if (request.method == "DELETE") {
           response.writeHead(405);
