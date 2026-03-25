@@ -62,7 +62,7 @@ export class MarketRepository implements MarketRepo {
   async getMarketVendors(marketId: string): Promise<User[]> {
     try {
       const getOperation: QueryResult<User> = await this.DB.query(
-        "SELECT * FROM users WHERE market_id=$1 and 'vendor'=ANY(roles)",
+        "SELECT * FROM users WHERE market_id=$1 and 'vendor'=ANY(role)",
         [marketId],
       );
       return getOperation.rows;
