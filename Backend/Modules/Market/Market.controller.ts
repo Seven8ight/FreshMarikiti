@@ -101,7 +101,9 @@ export const MarketController = async (
         if (type == "all") {
           const allMarkets = await marketService.getMarkets();
 
-          response.writeHead(200);
+          response.writeHead(200, {
+            "content-type": "application/json",
+          });
           response.end(JSON.stringify(allMarkets));
         } else if (type == "vendors") {
           const marketId = searchParams.get("marketid");
