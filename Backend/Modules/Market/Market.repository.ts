@@ -14,7 +14,7 @@ export class MarketRepository implements MarketRepo {
   async createMarket(marketDetails: createMarkeDTO): Promise<Market> {
     try {
       const createOperation: QueryResult<Market> = await this.DB.query(
-        "INSERT INTO market(name,location) VALUES($1,$2) RETURNING *",
+        "INSERT INTO markets(name,location) VALUES($1,$2) RETURNING *",
         [marketDetails.name, marketDetails.location],
       );
       if (createOperation.rowCount && createOperation.rowCount > 0)
@@ -45,7 +45,7 @@ export class MarketRepository implements MarketRepo {
       }
 
       const editOperation = await this.DB.query(
-        `UPDATE market SET ${keys.join(", ")} WHERE id=$1`,
+        `UPDATE markets SET ${keys.join(", ")} WHERE id=$1`,
         [marketId, ...values],
       );
 
