@@ -85,7 +85,7 @@ export const MarketController = async (
         response.end(JSON.stringify(editMarket));
         break;
       case "get":
-        if (request.method == "GET") {
+        if (request.method != "GET") {
           response.writeHead(405);
           response.end(
             JSON.stringify({
