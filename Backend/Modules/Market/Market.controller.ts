@@ -120,7 +120,7 @@ export const MarketController = async (
           }
 
           const getMarketVendors: PublicUser[] =
-            await marketService.getMarketVendors(parsedRequestBody.id);
+            await marketService.getMarketVendors(marketId);
 
           response.writeHead(200);
           response.end(JSON.stringify(getMarketVendors));
