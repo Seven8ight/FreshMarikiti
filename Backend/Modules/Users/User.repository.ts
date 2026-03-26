@@ -17,8 +17,8 @@ export class UserRepository implements UserRepo {
       const { role, ...rest } = newUserData;
 
       for (let [key, value] of Object.entries(rest)) {
-        if (key === "password") value = hashPassword(value as string);
         keys.push(`${key}=$${paramIndex++}`);
+        if (key === "password") value = hashPassword(value as string);
         values.push(value);
       }
 
