@@ -67,7 +67,7 @@ export class MarketService implements MarketServ {
 
   async getMarket(marketId: string): Promise<Market> {
     try {
-      const market = await this.getMarket(marketId);
+      const market = await this.marketRepo.getMarket(marketId);
 
       return market;
     } catch (error) {
