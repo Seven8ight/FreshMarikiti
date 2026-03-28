@@ -27,7 +27,7 @@ export class UserRepository implements UserRepo {
       if (role && role.role) {
         if (
           !["customer", "vendor", "rider", "connector", "admin"].includes(
-            role.role,
+            role.role[0],
           )
         ) {
           throw new Error("Invalid role");
@@ -37,7 +37,7 @@ export class UserRepository implements UserRepo {
           keys.push(`roles = array_remove(roles, $${paramIndex++})`);
         else keys.push(`roles = array_append(roles, $${paramIndex++})`);
 
-        values.push(role.role);
+        values.push(role.role[0]);
       }
 
       if (keys.includes("market_id")) {
