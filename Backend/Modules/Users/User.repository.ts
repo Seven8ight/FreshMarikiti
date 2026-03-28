@@ -34,8 +34,8 @@ export class UserRepository implements UserRepo {
         }
 
         if (role.action === "remove")
-          keys.push(`roles = array_remove(roles, $${paramIndex++})`);
-        else keys.push(`roles = array_append(roles, $${paramIndex++})`);
+          keys.push(`role = array_remove(role, $${paramIndex++})`);
+        else keys.push(`role = array_append(role, $${paramIndex++})`);
 
         values.push(role.role[0]);
       }
