@@ -89,8 +89,7 @@ export class AuthService implements AuthServ {
       const loginProcess = await this.authRepo.login(userData, type),
         publicUser = this.createPublicUser(loginProcess),
         userTokens = generateTokens(publicUser);
-      console.log(loginProcess);
-      console.log(publicUser);
+
       await this.authRepo.storeRefreshToken(
         publicUser.id,
         userTokens.refreshToken,
