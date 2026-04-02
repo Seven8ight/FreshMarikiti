@@ -94,9 +94,7 @@ export class PaymentRepository implements PaymentRepo {
         [receiptId],
       );
 
-      if (getReceipt.rowCount && getReceipt.rowCount > 0)
-        return getReceipt.rows[0];
-      throw new Error(`Payment of receipt, ${receiptId} does not exist`);
+      return getReceipt.rows[0];
     } catch (error) {
       warningMsg("Error at payment repo, getting receipt");
       throw error;
@@ -118,10 +116,7 @@ export class PaymentRepository implements PaymentRepo {
           [identifier.id],
         );
 
-      if (userReceipts.rowCount && userReceipts.rowCount > 0)
-        return userReceipts.rows;
-
-      throw new Error("Receipts for user, ${userData} not found");
+      return userReceipts.rows;
     } catch (error) {
       warningMsg("Error at getting user receipts");
       throw error;

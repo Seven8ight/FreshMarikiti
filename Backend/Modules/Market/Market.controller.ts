@@ -135,7 +135,7 @@ export const MarketController = async (
 
         break;
       case "delete":
-        if (request.method == "DELETE") {
+        if (request.method != "DELETE") {
           response.writeHead(405);
           response.end(
             JSON.stringify({
