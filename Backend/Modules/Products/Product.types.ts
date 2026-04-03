@@ -7,6 +7,7 @@ export type Product = {
   image?: string;
   amount: number;
   category: string;
+  type: string;
 };
 
 export type createProductDTO = Omit<Product, "id" | "sellerId">;

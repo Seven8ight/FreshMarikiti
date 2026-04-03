@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS products(
     quantity INT NOT NULL DEFAULT 0,
     image TEXT,
     amount INT NOT NULL,
-    category TEXT NOT NULL
+    category TEXT NOT NULL,
+    type TEXT NOT NULL
 );

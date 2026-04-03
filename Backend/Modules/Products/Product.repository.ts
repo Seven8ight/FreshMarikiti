@@ -15,13 +15,14 @@ export class ProductRepository implements ProductRepo {
     try {
       const vendor = await new UserRepository(this.DB).getUserById(userId),
         createProduct = await this.DB.query(
-          "INSERT INTO products(name,sellerId,description,quantity,amount,category,image,market_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *",
+          "INSERT INTO products(name,sellerId,description,quantity,amount,type,category,image,market_id) VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *",
           [
             details.name,
             userId,
             details.description,
             details.quantity,
             details.amount,
+            details.type,
             details.category,
             details.image ? details.image : "",
             vendor.market_id,
