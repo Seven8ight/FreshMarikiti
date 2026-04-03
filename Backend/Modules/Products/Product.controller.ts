@@ -68,7 +68,7 @@ export const ProductController = (
           }
 
           if (
-            !userVerifier.role.includes("vendor") ||
+            !userVerifier.role.includes("vendor") &&
             !userVerifier.role.includes("admin")
           ) {
             response.writeHead(400);
