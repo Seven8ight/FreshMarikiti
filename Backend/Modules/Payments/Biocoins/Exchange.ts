@@ -1,23 +1,24 @@
 import { QueryResult } from "pg";
 import { pgClient } from "../../../Config/Db.js";
 import { User } from "../../Users/User.types.js";
-import { ReversalRequest, Transaction } from "./Types.js";
-import { Product } from "../../Products/Product.types.js";
+import { ReversalRequest } from "./Types.js";
 import { ProductRepository } from "../../Products/Product.repository.js";
 import { UserRepository } from "../../Users/User.repository.js";
-import { Order } from "../../Orders/Order.types.js";
-import { privateDecrypt } from "crypto";
 import { OrderRepository } from "../../Orders/Order.repository.js";
 
 const UserRepo = new UserRepository(pgClient),
   OrderRepo = new OrderRepository(pgClient),
   ProductRepo = new ProductRepository(pgClient);
 
-export const EditUserFunds = async (phone_number: string, amount: number) => {
+export const EditUserFunds = async (
+    amount: number,
+    phone_number?: string,
+    userId?: string,
+  ) => {
     try {
       const updateUserFunds: QueryResult<User> = await pgClient.query(
-        "UPDATE users SET biocoins=$1 where phone_number=$2 RETURNING *",
-        [phone_number, amount],
+        "UPDATE users SET biocoins=$1 where phone_number=$2 or user_id=$3 RETURNING *",
+        [amount, phone_number, userId],
       );
 
       if (updateUserFunds.rowCount && updateUserFunds.rowCount > 0)

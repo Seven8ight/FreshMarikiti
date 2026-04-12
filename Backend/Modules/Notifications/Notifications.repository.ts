@@ -11,7 +11,7 @@ export class NotificationRepository {
   async registerDevice(device: DeviceData) {
     try {
       let deviceRegistration = await this.DB.query(
-        "INSERT INTO device_tokens(user_id,token,platform) VALUES($1,$2,$3) RETURNING *",
+        "INSERT INTO device_tokens(user_id,token,platform) VALUES($1,$2,$3) ON CONFLICT(token) DO UPDATE SET user_id=excluded.user_id,platform=excluded.platform,is_active=true RETURNING *",
         [device.user_id, device.token, device.platform],
       );
 

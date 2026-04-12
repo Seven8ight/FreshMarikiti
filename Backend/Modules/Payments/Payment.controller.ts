@@ -12,7 +12,11 @@ import {
 import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 import { verifyAccessToken } from "../../Utils/JWT.js";
 import { PublicUser } from "../Users/User.types.js";
+import { socketService } from "../../Server.js";
 import { sendNotification } from "../Notifications/Notifications.setup.js";
+import { NotificationRepository } from "../Notifications/Notifications.repository.js";
+
+const notificationRepo = new NotificationRepository(pgClient);
 
 export const PaymentController = async (
   request: IncomingMessage,
@@ -95,19 +99,83 @@ export const PaymentController = async (
                   status: "Completed",
                 });
 
-                const user = await paymentService.getReceipt(CheckoutRequestID);
+                const payment =
+                  await paymentService.getReceipt(CheckoutRequestID);
 
-                EditUserFunds(user.phone_number, Number.parseInt(user.amount));
+                EditUserFunds(
+                  Number.parseInt(payment.amount),
+                  payment.phone_number,
+                );
+
+                socketService.emitToUser(
+                  payment.user_id,
+                  "m-pesa transaction",
+                  {
+                    status: "Completed",
+                    checkout_request_id: payment.checkout_request_id,
+                  },
+                );
+
+                const userDevice = await notificationRepo.getUserTokens(
+                    payment.user_id,
+                  ),
+                  userDeviceTokens: string[] = userDevice.map(
+                    (device) => device.token,
+                  );
+
+                await sendNotification(
+                  {
+                    user_id: payment.user_id,
+                    title: "Payment Successful",
+                    body: "Your M-Pesa payment was completed successfully",
+                    data: JSON.stringify({
+                      checkout_request_id: CheckoutRequestID,
+                      amount: payment.amount,
+                    }),
+                    type: "payment",
+                  },
+                  userDeviceTokens,
+                );
 
                 response.writeHead(200);
                 response.end(
                   JSON.stringify({ ResultCode: 0, ResultDesc: "Success" }),
                 );
               } else {
-                await paymentService.editReceipt({
+                const payment = await paymentService.editReceipt({
                   checkout_request_id: CheckoutRequestID,
                   status: "Rejected",
                 });
+
+                socketService.emitToUser(
+                  payment.user_id,
+                  "m-pesa transaction",
+                  {
+                    status: "Rejected",
+                    checkout_request_id: payment.checkout_request_id,
+                  },
+                );
+
+                const userDevice = await notificationRepo.getUserTokens(
+                    payment.user_id,
+                  ),
+                  userDeviceTokens: string[] = userDevice.map(
+                    (device) => device.token,
+                  );
+
+                await sendNotification(
+                  {
+                    user_id: payment.user_id,
+                    title: "Payment Successful",
+                    body: "Your M-Pesa payment has been rejected",
+                    data: JSON.stringify({
+                      checkout_request_id: CheckoutRequestID,
+                      amount: payment.amount,
+                    }),
+                    type: "payment",
+                  },
+                  userDeviceTokens,
+                );
 
                 response.writeHead(200); // Safaricom expects 200 even for failed payments
                 response.end(
@@ -152,7 +220,7 @@ export const PaymentController = async (
                 status: "Pending",
               };
 
-              paymentService.createReceipt(paymentData);
+              await paymentService.createReceipt(paymentData);
 
               response.writeHead(200);
               response.end(JSON.stringify(paymentIntent.client_secret));
@@ -161,9 +229,36 @@ export const PaymentController = async (
             case "redirect":
               const stripeSignature = request.headers["stripe-signature"];
 
-              StripeWebHookHandler(
+              const stripePayment = await StripeWebHookHandler(
                 unparsedRequestBody,
                 stripeSignature as string,
+              );
+
+              if (!stripePayment) {
+                response.writeHead(400);
+                response.end(JSON.stringify({ error: "Invalid Stripe event" }));
+                return;
+              }
+
+              socketService.emitToUser(user.id, "Stripe payment", {
+                status: (stripePayment as any).status,
+                data: stripePayment,
+              });
+
+              const userDevice = await notificationRepo.getUserTokens(user.id),
+                userDeviceTokens: string[] = userDevice.map(
+                  (device) => device.token,
+                );
+
+              await sendNotification(
+                {
+                  user_id: user.id,
+                  title: "Payment Successful",
+                  body: "Your M-Pesa payment was completed successfully",
+                  data: JSON.stringify(stripePayment),
+                  type: "payment",
+                },
+                userDeviceTokens,
               );
 
               response.writeHead(200);
@@ -181,6 +276,24 @@ export const PaymentController = async (
           switch (pathName[3]) {
             case "transact":
               await Transact(parsedRequestBody.id);
+
+              const userDevice = await notificationRepo.getUserTokens(user.id),
+                userDeviceTokens: string[] = userDevice.map(
+                  (device) => device.token,
+                );
+
+              await sendNotification(
+                {
+                  user_id: user.id,
+                  title: "Payment Successful",
+                  body: "Your Biocoins payment was completed successfully",
+                  data: JSON.stringify({
+                    Transaction: "successful",
+                  }),
+                  type: "payment",
+                },
+                userDeviceTokens,
+              );
 
               response.writeHead(200);
               response.end(

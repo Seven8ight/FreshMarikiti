@@ -95,9 +95,8 @@ export const NotificationController = async (
             return;
           }
 
-          const userNotifications = notificationsService.getUserNotifications(
-            user.id,
-          );
+          const userNotifications =
+            await notificationsService.getUserNotifications(user.id);
 
           response.writeHead(200);
           response.end(JSON.stringify(userNotifications));

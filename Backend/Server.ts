@@ -5,8 +5,10 @@ import { connectToDatabase } from "./Config/Db.js";
 import Router from "./router.js";
 import { Server } from "socket.io";
 import { registerChatSocket } from "./Modules/Chats/Chat.socket.js";
+import { createSocketServer } from "./Modules/Sockets/Socket.setup.js";
+import { SocketService } from "./Modules/Sockets/Socket.service.js";
 
-const server = http.createServer(
+export const server = http.createServer(
     (request: IncomingMessage, response: ServerResponse<IncomingMessage>) => {
       response.setHeader("Access-Control-Allow-Origin", "*");
       response.setHeader(
@@ -32,11 +34,8 @@ const server = http.createServer(
       Router(request, response);
     },
   ),
-  socketIo = new Server(server, {
-    cors: { origin: "*" },
-  });
-
-registerChatSocket(socketIo);
+  { io, userSocketMap } = createSocketServer(server),
+  socketService = new SocketService(io, userSocketMap);
 
 server.listen(SERVER_PORT, async () => {
   try {

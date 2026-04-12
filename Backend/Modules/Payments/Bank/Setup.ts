@@ -6,17 +6,14 @@ import {
 import { PaymentRepository } from "../Payment.repository.js";
 import { pgClient } from "../../../Config/Db.js";
 import { PaymentService } from "../Payment.service.js";
-import { UserRepository } from "../../Users/User.repository.js";
-import { UserService } from "../../Users/User.service.js";
+import { EditUserFunds } from "../Biocoins/Exchange.js";
 
 const stripe = new Stripe(STRIPE_SECRET_KEY!, {
   apiVersion: "2025-12-15.clover",
 });
 
 const paymentRepo = new PaymentRepository(pgClient),
-  paymentService = new PaymentService(paymentRepo),
-  userRepo = new UserRepository(pgClient),
-  userService = new UserService(userRepo);
+  paymentService = new PaymentService(paymentRepo);
 
 export const MakeBankPayment = async (amount: number) =>
     await stripe.paymentIntents.create({
@@ -47,69 +44,39 @@ export const MakeBankPayment = async (amount: number) =>
     try {
       switch (event.type) {
         case "payment_intent.succeeded": {
-          const intent = event.data.object as Stripe.PaymentIntent;
-          console.log(intent.payment_method);
+          const intent = event.data.object as Stripe.PaymentIntent,
+            payment = await paymentService.editReceipt({
+              stripe_payment_intent_id: intent.id,
+              status: "Completed",
+            });
 
-          break;
-        }
+          const existing = await paymentService.getReceipt(intent.id);
 
-        case "charge.succeeded": {
-          const charge = event.data.object as Stripe.Charge,
-            paymentIntentId = charge.payment_intent;
+          if (existing.status === "Completed") return existing;
 
-          paymentService.editReceipt({
-            stripe_payment_intent_id: paymentIntentId as string,
-            status: "Completed",
-          });
+          await EditUserFunds(intent.amount_received, payment.phone_number);
 
-          console.log(`💰 Charge Succeeded for ${paymentIntentId}!`);
-
-          break;
-        }
-
-        case "charge.failed": {
-          const charge = event.data.object as Stripe.Charge,
-            paymentIntentId = charge.payment_intent;
-
-          paymentService.editReceipt({
-            stripe_payment_intent_id: paymentIntentId as string,
-            status: "Rejected",
-          });
-
-          const getReceipt = await paymentService.getReceipt(
-            paymentIntentId as string,
-          );
-
-          userService.editUser(getReceipt.phone_number, {
-            biocoins: Number.parseInt(getReceipt.amount),
-          });
-
-          console.log(`💰 Charge Succeeded for ${paymentIntentId}!`);
-
-          break;
+          return payment;
         }
 
         case "payment_intent.payment_failed": {
-          console.log("Charge succeeded body\n");
           const intent = event.data.object as Stripe.PaymentIntent;
-          //   console.log(intent.payment_method);
 
-          break;
+          const payment = await paymentService.editReceipt({
+            stripe_payment_intent_id: intent.id,
+            status: "Rejected",
+          });
+
+          return payment;
         }
 
-        case "payment_intent.created":
-          console.log("Payment intent creation\n");
-          //   console.log(event.data);
+        default:
+          console.log("Ignored event:", event.type);
 
           break;
-        case "charge.updated":
-          console.log("Charge updated body\n");
-          //   console.log(event.data);
-          break;
-        default:
-          console.log("Unhandled Stripe event:", event.type);
       }
     } catch (error) {
       console.error("❌ Error processing Stripe webhook:", error);
+      return error;
     }
   };
