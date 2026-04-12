@@ -39,7 +39,7 @@ export class UserService implements Userservice {
         "goals",
         "action",
         "market_id",
-        "stallnumber",
+        "stall_number",
         "on_shift",
       ];
 
