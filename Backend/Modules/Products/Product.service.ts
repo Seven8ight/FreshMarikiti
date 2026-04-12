@@ -52,6 +52,7 @@ export class ProductService implements ProductServ {
         "image",
         "amount",
         "category",
+        "type",
       ];
 
       let newProductObject: Record<string, any> = {};

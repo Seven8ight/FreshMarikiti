@@ -39,11 +39,11 @@ export const messaging = admin.messaging(),
         newNotification =
           await notificationRepo.createNotification(notification);
 
-      await Promise.all([
-        response.responses.forEach(async (response, index) => {
+      await Promise.all(
+        response.responses.map(async (response, index) => {
           const notificationStatus = response.success
             ? "sent"
-            : response.error?.code ==
+            : response.error?.code ===
                 "messaging/registration-token-not-registered"
               ? "invalid"
               : "failed";
@@ -55,10 +55,11 @@ export const messaging = admin.messaging(),
             error: response.error?.message ?? "",
           });
 
-          if (notificationStatus == "invalid")
+          if (notificationStatus === "invalid") {
             await notificationRepo.updateDeviceStatus(tokens[index], "invalid");
+          }
         }),
-      ]);
+      );
     } catch (error) {
       throw error;
     }

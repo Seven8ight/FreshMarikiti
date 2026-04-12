@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS products(
     name TEXT NOT NULL,
     market_id UUID REFERENCES market(id) NOT NULL,
     sellerId UUID NOT NULL REFERENCES users(id),
+    type TEXT,
     description TEXT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
     image TEXT,

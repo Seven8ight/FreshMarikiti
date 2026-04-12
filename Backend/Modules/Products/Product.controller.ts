@@ -71,7 +71,7 @@ export const ProductController = (
             !userVerifier.role.includes("vendor") &&
             !userVerifier.role.includes("admin")
           ) {
-            response.writeHead(400);
+            response.writeHead(403);
             response.end(
               JSON.stringify({
                 error: "User does not have permission to use this api route",
@@ -100,10 +100,10 @@ export const ProductController = (
           }
 
           if (
-            !userVerifier.role.includes("vendor") ||
-            userVerifier.role.includes("admin")
+            !userVerifier.role.includes("vendor") &&
+            !userVerifier.role.includes("admin")
           ) {
-            response.writeHead(400);
+            response.writeHead(403);
             response.end(
               JSON.stringify({
                 error: "User does not have permission to use this api route",
@@ -196,8 +196,8 @@ export const ProductController = (
           }
 
           if (
-            !userVerifier.role.includes("vendor") ||
-            userVerifier.role.includes("admin")
+            !userVerifier.role.includes("vendor") &&
+            !userVerifier.role.includes("admin")
           ) {
             response.writeHead(400);
             response.end(

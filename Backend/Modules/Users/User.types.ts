@@ -45,6 +45,7 @@ export interface UserRepo {
   editUser: (userId: string, newUserData: updateUserDTO) => Promise<User>;
   getUserById: (userId: string) => Promise<User>;
   getUserByEmail: (email: string) => Promise<User>;
+  getAllUsers: () => Promise<User[]>;
   deleteUser: (userId: string) => Promise<void>;
 }
 
@@ -52,5 +53,6 @@ export interface Userservice {
   editUser: (userId: string, newUserData: updateUserDTO) => Promise<PublicUser>;
   getUserById: (userId: string) => Promise<PublicUser>;
   getUserByEmail: (email: string) => Promise<PublicUser>;
+  getAllUsers: () => Promise<User[]>;
   deleteUser: (userId: string) => Promise<void>;
 }

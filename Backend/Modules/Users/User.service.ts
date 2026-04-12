@@ -40,6 +40,7 @@ export class UserService implements Userservice {
         "action",
         "market_id",
         "stallnumber",
+        "on_shift",
       ];
 
       let newUserObject: Record<string, any> = {};
@@ -93,6 +94,16 @@ export class UserService implements Userservice {
     } catch (error) {
       errorMsg(`${(error as Error).message}`);
       warningMsg("Get user service error occurred");
+      throw error;
+    }
+  }
+
+  async getAllUsers() {
+    try {
+      const allUsers = await this.UserRepo.getAllUsers();
+
+      return allUsers;
+    } catch (error) {
       throw error;
     }
   }

@@ -71,6 +71,24 @@ export const UserController = (
           );
 
           break;
+        case "getall":
+          if (request.method != "GET") {
+            response.writeHead(405);
+            response.end(
+              JSON.stringify({
+                error: "Use GET instead",
+              }),
+            );
+
+            return;
+          }
+
+          const allUsers = await Userservice.getAllUsers();
+
+          response.writeHead(200);
+          response.end(JSON.stringify(allUsers));
+
+          break;
         case "get":
           if (request.method != "GET") {
             response.writeHead(405);

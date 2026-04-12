@@ -1,6 +1,6 @@
 import type { Client, QueryResult } from "pg";
 import type { User, UserRepo } from "./User.types.js";
-import { warningMsg } from "./../../Utils/Logger.js";
+import { errorMsg, warningMsg } from "./../../Utils/Logger.js";
 import { hashPassword } from "./../../Utils/Password.js";
 import { MarketService } from "../Market/Market.service.js";
 import { MarketRepository } from "../Market/Market.repository.js";
@@ -96,6 +96,19 @@ export class UserRepository implements UserRepo {
       throw new Error("User does not exist");
     } catch (error) {
       warningMsg("Get user repo error occurred");
+      throw error;
+    }
+  }
+
+  async getAllUsers() {
+    try {
+      const users: QueryResult<User> = await this.pgClient.query(
+        "SELECT * FROM users",
+      );
+
+      return users.rows;
+    } catch (error) {
+      errorMsg(`Error at users: ${(error as Error).message}`);
       throw error;
     }
   }

@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
 
+  on_shift TEXT DEFAULT "open",
   profile_image TEXT,
   oauth BOOLEAN DEFAULT FALSE,
   oauth_provider TEXT,
