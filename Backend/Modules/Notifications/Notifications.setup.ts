@@ -4,11 +4,11 @@ import {
   FIREBASE_PRIVATE_KEY,
   FIREBASE_PROJECT_ID,
 } from "../../Config/Env.js";
-import { createNotificationDTO, Notification } from "./Notifications.types.js";
+import { createNotificationDTO } from "./Notifications.types.js";
 import { NotificationRepository } from "./Notifications.repository.js";
 import { pgClient } from "../../Config/Db.js";
 
-if (!admin.app.length) {
+if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
       projectId: FIREBASE_PROJECT_ID,
