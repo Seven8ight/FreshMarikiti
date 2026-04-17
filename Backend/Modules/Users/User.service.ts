@@ -22,6 +22,7 @@ export class UserService implements Userservice {
       role: userData.role,
       market_id: userData.market_id,
       stallNumber: userData.stallNumber,
+      on_shift: userData.on_shift,
     };
   }
 

@@ -12,6 +12,7 @@ export type User = {
   market_id?: string;
   stallNumber?: string;
   phone_number: string;
+  on_shift: string;
 };
 
 export type tokens = {
