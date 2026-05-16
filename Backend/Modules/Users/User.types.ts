@@ -8,7 +8,9 @@ export type User = {
   oAuthProvider?: string;
   biocoins: number;
   goals: string;
-  role: Array<"rider" | "customer" | "vendor" | "connector" | "admin">;
+  role: Array<
+    "rider" | "customer" | "vendor" | "connector" | "admin" | "manager"
+  >;
   market_id?: string;
   stallNumber?: string;
   phone_number: string;
