@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   email TEXT UNIQUE NOT NULL,
   password TEXT NOT NULL,
 
-  on_shift TEXT DEFAULT "open",
+  on_shift TEXT DEFAULT 'true',
   profile_image TEXT,
   oauth BOOLEAN DEFAULT FALSE,
   oauth_provider TEXT,
@@ -17,11 +17,10 @@ CREATE TABLE IF NOT EXISTS users (
 
   market_id UUID REFERENCES market(id) ON DELETE SET NULL,
   stall_number TEXT,
-  on_shift TEXT,
 
   phone_number TEXT UNIQUE,
 
-  created_at TIMESTAMP DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT NOW(),
   deleted_at DATE
 );
 

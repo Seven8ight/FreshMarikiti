@@ -1,21 +1,45 @@
-import { IncomingMessage, ServerResponse } from "node:http";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import Routes from "./routes.js";
+import { sendResponseMessage } from "./Utils/HttpFunctions.js";
 
-export default function Router(
+const Router = (
   request: IncomingMessage,
   response: ServerResponse<IncomingMessage>,
-) {
-  const requestUrl = new URL(request.url!, `http://${request.headers.host}`),
-    pathName = requestUrl.pathname.split("/").filter(Boolean);
+) => {
+  try {
+    const requestUrl: URL = new URL(
+        request.url!,
+        `http://${request.headers.host}`,
+      ),
+      pathnames: string[] = requestUrl.pathname.split("/").filter(Boolean);
 
-  const matchedRoute = Routes().find(
-    (route) => pathName[1]?.toLowerCase() === route.pathname,
-  );
+    response.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,OPTIONS,DELETE",
+    );
+    response.setHeader("Access-Control-Allow-Origins", "*");
+    response.setHeader(
+      "Access-Control-Allow-Headers",
+      "accept,content-type,content-length",
+    );
 
-  if (matchedRoute) {
-    matchedRoute.controller(request, response);
-  } else {
-    response.writeHead(404, { "Content-Type": "application/json" });
-    response.end(JSON.stringify({ message: "Invalid route path" }));
+    if (request.method == "OPTIONS")
+      return sendResponseMessage(204, false, "", response);
+
+    Routes().forEach((route) => {
+      if (route.pathname.toLowerCase() == pathnames.at(1)) {
+        route.controller(request, response);
+        return;
+      }
+    });
+  } catch (error) {
+    return sendResponseMessage(
+      404,
+      true,
+      `API Error: ${(error as Error).message}`,
+      response,
+    );
   }
-}
+};
+
+export default Router;

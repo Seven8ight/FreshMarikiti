@@ -58,7 +58,7 @@ export class UserService implements Userservice {
           newUserObject["profile_image"] = value;
         else newUserObject[key] = value;
       }
-
+      console.log(newUserObject);
       const updatedUser = await this.UserRepo.editUser(
         userId,
         newUserObject as any,

@@ -120,6 +120,14 @@ export const UserController = (
 
           response.writeHead(204);
           response.end();
+        default:
+          response.writeHead(404);
+          response.end(
+            JSON.stringify({
+              error: "Invalid api route",
+            }),
+          );
+          break;
       }
     } catch (error) {
       response.writeHead(400);

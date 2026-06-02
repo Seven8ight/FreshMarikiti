@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS orders(
-    id UUID NOT NULL DEFAULT uuid_generate_v4() PRIMARY KEY,
-    buyerid UUID REFERENCES users(id),
+    id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+    buyerid UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     products JSON NOT NULL,
-    riderid UUID REFERENCES users(id),
+    riderid UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     status TEXT
 );

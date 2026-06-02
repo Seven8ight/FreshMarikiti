@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS market(
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4() NOT NULL,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
     name TEXT NOT NULL UNIQUE,
     location TEXT NOT NULL,
     vendors INT NOT NULL DEFAULT 0,

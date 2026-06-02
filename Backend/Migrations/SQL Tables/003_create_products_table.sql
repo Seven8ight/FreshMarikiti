@@ -1,9 +1,8 @@
 CREATE TABLE IF NOT EXISTS products(
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY NOT NULL,
     name TEXT NOT NULL,
-    market_id UUID REFERENCES market(id) NOT NULL,
-    sellerId UUID NOT NULL REFERENCES users(id),
-    type TEXT,
+    market_id UUID REFERENCES market(id) ON DELETE CASCADE NOT NULL,
+    sellerId UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
     description TEXT NOT NULL,
     quantity INT NOT NULL DEFAULT 0,
     image TEXT,

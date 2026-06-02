@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS feedback(
-    id UUID DEFAULT uuid_generate_v4() NOT NULL PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
     userid UUID REFERENCES users(id),
     comment TEXT NOT NULL,
-    productid UUID NOT NULL REFERENCES products(id),
+    productid UUID REFERENCES products(id) ON DELETE CASCADE NOT NULL,
     rating INT CHECK(rating <= 5) NOT NULL DEFAULT 0
 );

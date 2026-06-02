@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS chats (
 
   context_id UUID NULL,
 
-  created_by UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_by UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
 
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 

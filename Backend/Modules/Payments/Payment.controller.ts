@@ -9,7 +9,7 @@ import {
   Transact,
   UpdateReversalRequest,
 } from "./Biocoins/Exchange.js";
-import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
+// import { MakeBankPayment, StripeWebHookHandler } from "./Bank/Setup.js";
 import { verifyAccessToken } from "../../Utils/JWT.js";
 import { PublicUser } from "../Users/User.types.js";
 import { socketService } from "../../Server.js";
@@ -192,85 +192,85 @@ export const PaymentController = async (
           }
           break;
 
-        case "bank":
-          switch (pathName[3]) {
-            case "initiate":
-              const { phone_number, amount, order_id } = parsedRequestBody,
-                newAmount = amount * 100;
+        // case "bank":
+        //   switch (pathName[3]) {
+        //     case "initiate":
+        //       const { phone_number, amount, order_id } = parsedRequestBody,
+        //         newAmount = amount * 100;
 
-              if (!phone_number || !amount) {
-                response.writeHead(400);
-                response.end(
-                  JSON.stringify({
-                    error:
-                      "Ensure to provide phone number(phone_number) and amount",
-                  }),
-                );
-                return;
-              }
+        //       if (!phone_number || !amount) {
+        //         response.writeHead(400);
+        //         response.end(
+        //           JSON.stringify({
+        //             error:
+        //               "Ensure to provide phone number(phone_number) and amount",
+        //           }),
+        //         );
+        //         return;
+        //       }
 
-              const paymentIntent = await MakeBankPayment(newAmount);
+        //       // const paymentIntent = await MakeBankPayment(newAmount);
 
-              const paymentData: Record<string, any> = {
-                phone_number: phone_number,
-                amount: newAmount,
-                order_id: order_id,
-                means_of_payment: "Bank",
-                stripe_payment_intent_id: paymentIntent.client_secret,
-                status: "Pending",
-              };
+        //       const paymentData: Record<string, any> = {
+        //         phone_number: phone_number,
+        //         amount: newAmount,
+        //         order_id: order_id,
+        //         means_of_payment: "Bank",
+        //         stripe_payment_intent_id: paymentIntent.client_secret,
+        //         status: "Pending",
+        //       };
 
-              await paymentService.createReceipt(paymentData);
+        //       await paymentService.createReceipt(paymentData);
 
-              response.writeHead(200);
-              response.end(JSON.stringify(paymentIntent.client_secret));
+        //       response.writeHead(200);
+        //       response.end(JSON.stringify(paymentIntent.client_secret));
 
-              break;
-            case "redirect":
-              const stripeSignature = request.headers["stripe-signature"];
+        //       break;
+        //     case "redirect":
+        //       const stripeSignature = request.headers["stripe-signature"];
 
-              const stripePayment = await StripeWebHookHandler(
-                unparsedRequestBody,
-                stripeSignature as string,
-              );
+        //       const stripePayment = await StripeWebHookHandler(
+        //         unparsedRequestBody,
+        //         stripeSignature as string,
+        //       );
 
-              if (!stripePayment) {
-                response.writeHead(400);
-                response.end(JSON.stringify({ error: "Invalid Stripe event" }));
-                return;
-              }
+        //       if (!stripePayment) {
+        //         response.writeHead(400);
+        //         response.end(JSON.stringify({ error: "Invalid Stripe event" }));
+        //         return;
+        //       }
 
-              socketService.emitToUser(user.id, "Stripe payment", {
-                status: (stripePayment as any).status,
-                data: stripePayment,
-              });
+        //       socketService.emitToUser(user.id, "Stripe payment", {
+        //         status: (stripePayment as any).status,
+        //         data: stripePayment,
+        //       });
 
-              const userDevice = await notificationRepo.getUserTokens(user.id),
-                userDeviceTokens: string[] = userDevice.map(
-                  (device) => device.token,
-                );
+        //       const userDevice = await notificationRepo.getUserTokens(user.id),
+        //         userDeviceTokens: string[] = userDevice.map(
+        //           (device) => device.token,
+        //         );
 
-              await sendNotification(
-                {
-                  user_id: user.id,
-                  title: "Payment Successful",
-                  body: "Your M-Pesa payment was completed successfully",
-                  data: JSON.stringify(stripePayment),
-                  type: "payment",
-                },
-                userDeviceTokens,
-              );
+        //       await sendNotification(
+        //         {
+        //           user_id: user.id,
+        //           title: "Payment Successful",
+        //           body: "Your M-Pesa payment was completed successfully",
+        //           data: JSON.stringify(stripePayment),
+        //           type: "payment",
+        //         },
+        //         userDeviceTokens,
+        //       );
 
-              response.writeHead(200);
-              response.end(
-                JSON.stringify({
-                  message: "Received successfully",
-                }),
-              );
+        //       response.writeHead(200);
+        //       response.end(
+        //         JSON.stringify({
+        //           message: "Received successfully",
+        //         }),
+        //       );
 
-              break;
-          }
-          break;
+        //       break;
+        //   }
+        //   break;
 
         case "biocoins":
           switch (pathName[3]) {

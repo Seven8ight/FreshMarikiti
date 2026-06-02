@@ -20,7 +20,6 @@ export class AuthRepository implements AuthRepo {
 
       if (userType.type == "legacy") {
         const hashedPassword = hashPassword(userData.password as string);
-
         newUser = await this.pgClient.query(
           `INSERT INTO users(username,email,password,phone_number,profile_image,oauth,role,on_shift) VALUES($1,$2,$3,$4,$5,$6,$7::text[],$8) RETURNING *`,
           [
@@ -52,6 +51,7 @@ export class AuthRepository implements AuthRepo {
 
       throw new Error("New user not created, try again");
     } catch (error) {
+      console.log(error);
       errorMsg(`${(error as Error).message}`);
       warningMsg(`Error at creating auth repo`);
       throw error;

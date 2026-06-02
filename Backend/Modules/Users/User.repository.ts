@@ -13,7 +13,7 @@ export class UserRepository implements UserRepo {
       let keys: string[] = [];
       let values: any[] = [];
       let paramIndex = 2;
-
+      console.log(newUserData);
       const { role, ...rest } = newUserData;
 
       for (let [key, value] of Object.entries(rest)) {

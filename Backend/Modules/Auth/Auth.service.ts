@@ -26,6 +26,7 @@ export class AuthService implements AuthServ {
       profileImage: userData.profileImage,
       role: userData.role,
       phone_number: userData.phone_number,
+      on_shift: "true",
     };
   }
 
