@@ -57,7 +57,8 @@ export const UserController = (
             );
             return;
           }
-
+          console.log("Controller");
+          console.log(parsedRequestBody);
           const newUpdatedUser = await Userservice.editUser(
             userId,
             parsedRequestBody,

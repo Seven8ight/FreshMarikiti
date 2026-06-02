@@ -10,10 +10,10 @@ export class UserRepository implements UserRepo {
 
   async editUser(userId: string, newUserData: any) {
     try {
-      let keys: string[] = [];
-      let values: any[] = [];
-      let paramIndex = 2;
-      console.log(newUserData);
+      let keys: string[] = [],
+        values: any[] = [],
+        paramIndex = 2;
+
       const { role, ...rest } = newUserData;
 
       for (let [key, value] of Object.entries(rest)) {
@@ -21,8 +21,6 @@ export class UserRepository implements UserRepo {
         if (key === "password") value = hashPassword(value as string);
         values.push(value);
       }
-
-      if (keys.length === 0) throw new Error("No fields provided for update");
 
       if (role && role.role) {
         if (
@@ -40,17 +38,24 @@ export class UserRepository implements UserRepo {
         values.push(role.role[0]);
       }
 
-      if (keys.includes("market_id")) {
+      // CRITICAL FIX: Ensure we actually have fields to update before continuing
+      if (keys.length === 0) throw new Error("No fields provided for update");
+
+      // FIX: Check the raw incoming payload 'rest' for market_id, not the 'keys' SQL array
+      if ("market_id" in rest) {
         const marketService = new MarketService(
-            new MarketRepository(this.pgClient),
-          ),
-          marketId = keys.findIndex((value) => value == "market_id");
+          new MarketRepository(this.pgClient),
+        );
 
-        let getMarket = await marketService.getMarket(values[marketId]);
+        // Find where market_id sits in the values array
+        const marketIdIndex = Object.keys(rest).indexOf("market_id");
+        const marketIdValue = values[marketIdIndex];
 
-        marketService.editMarket({
-          id: values[marketId],
-          vendors: getMarket.vendors++,
+        let getMarket = await marketService.getMarket(marketIdValue);
+
+        await marketService.editMarket({
+          id: marketIdValue,
+          vendors: getMarket.vendors + 1, // Fix: Use + 1 instead of postfix ++ to avoid mutation bugs
         });
       }
 
