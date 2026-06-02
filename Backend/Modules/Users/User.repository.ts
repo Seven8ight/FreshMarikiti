@@ -57,6 +57,7 @@ export class UserRepository implements UserRepo {
           id: marketIdValue,
           vendors: getMarket.vendors + 1, // Fix: Use + 1 instead of postfix ++ to avoid mutation bugs
         });
+        console.log("Here after after");
       }
 
       const userUpdate = await this.pgClient.query(

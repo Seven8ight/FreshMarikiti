@@ -43,7 +43,7 @@ export class MarketRepository implements MarketRepo {
         keys.push(`${key}=$${paramIndex++}`);
         values.push(value);
       }
-
+      console.log(`UPDATE market SET ${keys.join(", ")} WHERE id=${marketId}`);
       const editOperation = await this.DB.query(
         `UPDATE market SET ${keys.join(", ")} WHERE id=$1`,
         [marketId, ...values],

@@ -21,6 +21,7 @@ export class MarketService implements MarketServ {
       goals: userData.goals,
       phone_number: userData.phone_number,
       role: userData.role,
+      on_shift: "true",
     };
   }
 
@@ -45,7 +46,7 @@ export class MarketService implements MarketServ {
   }
 
   async editMarket(newMarketDetails: editMarketDTO): Promise<Market> {
-    const allowedFields: string[] = ["name", "location"];
+    const allowedFields: string[] = ["name", "location", "vendors"];
 
     let newMarketData: Record<string, any> = {};
 
