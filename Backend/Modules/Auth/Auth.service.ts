@@ -11,7 +11,10 @@ import type {
   PublicUser,
   User,
 } from "../Users/User.types.js";
-import type { AuthRepo, AuthServ, tokens } from "./Auth.types.js";
+import type { AuthRepo, AuthServ, tokens ,verifyOtpDTO ,resetPasswordDTO } from "./Auth.types.js";
+import { hashPassword, comparePasswordAndHash } from "../../Utils/Password.js";
+import { sendOtpEmail } from "../../Utils/Mailer.js";
+
 
 export class AuthService implements AuthServ {
   constructor(private authRepo: AuthRepo) {}
@@ -131,6 +134,46 @@ export class AuthService implements AuthServ {
       if (checkTokenInDatabase)
         await this.authRepo.revokeRefreshToken(refreshToken);
 
+      throw error;
+    }
+  }
+  async forgotPassword(email: string): Promise<void> {
+    try {
+      const findUser = await this.authRepo.findUserByEmail(email);
+
+      if (findUser.oAuth) throw new Error("Google accounts cannot reset password via this method");
+
+      const code = Math.floor(100000 + Math.random() * 900000).toString(),
+        hashedCode = hashPassword(code),
+        expires_at = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.authRepo.saveOtp({ email, code: hashedCode, expires_at });
+
+      await sendOtpEmail(email, code);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async verifyOtp(data: verifyOtpDTO): Promise<void> {
+    try {
+      const otp = await this.authRepo.findOtp(data.email);
+
+      if (new Date() > new Date(otp.expires_at)) throw new Error("OTP has expired");
+
+      if (!comparePasswordAndHash(data.code, otp.code)) throw new Error("Invalid OTP code");
+
+      await this.authRepo.markOtpUsed(otp.id);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async resetPassword(data: resetPasswordDTO): Promise<void> {
+    try {
+      const hashedPassword = hashPassword(data.password);
+      await this.authRepo.updatePassword(data.email, hashedPassword);
+    } catch (error) {
       throw error;
     }
   }

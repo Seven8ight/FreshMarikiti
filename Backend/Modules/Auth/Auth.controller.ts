@@ -280,6 +280,36 @@ export const AuthController = (
           );
 
           break;
+        case "forgot-password":
+          if (request.method != "POST") {
+            response.writeHead(405);
+            return response.end(JSON.stringify({ error: "Use POST instead" }));
+          }
+          await authService.forgotPassword(parsedRequestBody.email);
+          response.writeHead(200);
+          response.end(JSON.stringify({ message: "OTP sent to your email" }));
+          break;
+
+        case "verify-otp":
+          if (request.method != "POST") {
+            response.writeHead(405);
+            return response.end(JSON.stringify({ error: "Use POST instead" }));
+          }
+          await authService.verifyOtp(parsedRequestBody);
+          response.writeHead(200);
+          response.end(JSON.stringify({ message: "OTP verified successfully" }));
+          break;
+
+        case "reset-password":
+          if (request.method != "POST") {
+            response.writeHead(405);
+            return response.end(JSON.stringify({ error: "Use POST instead" }));
+          }
+          await authService.resetPassword(parsedRequestBody);
+          response.writeHead(200);
+          response.end(JSON.stringify({ message: "Password reset successfully" }));
+          break;
+
         default:
           response.writeHead(400);
           response.end(

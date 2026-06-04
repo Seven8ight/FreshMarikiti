@@ -1,5 +1,6 @@
 import type { Client, QueryResult } from "pg";
 import { pgClient } from "../../Config/Db.js";
+import type { AuthRepo, RefreshToken,OTP,createOtpDTO } from "./Auth.types.js";
 
 import type {
   createUserDTO,
@@ -9,7 +10,6 @@ import type {
 } from "../Users/User.types.js";
 import { comparePasswordAndHash, hashPassword } from "../../Utils/Password.js";
 import { errorMsg, warningMsg } from "../../Utils/Logger.js";
-import type { AuthRepo, RefreshToken } from "./Auth.types.js";
 
 export class AuthRepository implements AuthRepo {
   constructor(private pgClient: Client) {}
@@ -140,4 +140,64 @@ export class AuthRepository implements AuthRepo {
       throw error;
     }
   }
+  async findUserByEmail(email: string): Promise<User> {
+  try {
+    const result = await this.pgClient.query(
+      `SELECT * FROM users WHERE email=$1`,
+      [email]
+    );
+    if (result.rowCount && result.rowCount > 0) return result.rows[0];
+    throw new Error("No account found with this email");
+  } catch (error) {
+    throw error;
+  }
 }
+
+  async saveOtp(data: createOtpDTO):Promise<OTP>{
+  try{
+    const result =await this.pgClient.query(
+      'INSERT INTO otps (email, code ,expires_at) VALUES($1, $2, $3) RETURNING *',
+      [data.email, data.code ,data.expires_at]
+    );
+    if (result.rowCount && result.rowCount>0)return result.rows[0];
+    throw new Error("otp was not saved , try again");
+  }catch(error){
+    throw error;
+  }
+}
+async findOtp(email: string): Promise<OTP> {
+  try {
+    const result = await this.pgClient.query(
+      `SELECT * FROM otps WHERE email=$1 AND used=false ORDER BY created_at DESC LIMIT 1`,
+      [email]
+    );
+
+    if (result.rowCount && result.rowCount > 0) return result.rows[0];
+
+    throw new Error("OTP not found");
+  } catch (error) {
+    throw error;
+  }
+}
+async markOtpUsed(id: string): Promise<void> {
+  try {
+    await this.pgClient.query(
+      `UPDATE otps SET used=true WHERE id=$1`,
+      [id]
+    );
+  } catch (error) {
+    throw error;
+  }
+}
+async updatePassword(email: string, password:string): Promise<void>{
+  try{
+    await this.pgClient.query(
+      'UPDATE users SET password=$1 WHERE email=$2',
+      [password,email]
+    );
+  }catch (error){
+    throw error;
+  }
+}
+}
+

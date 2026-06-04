@@ -8,14 +8,20 @@ import { createNotificationDTO } from "./Notifications.types.js";
 import { NotificationRepository } from "./Notifications.repository.js";
 import { pgClient } from "../../Config/Db.js";
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: FIREBASE_PROJECT_ID,
-      clientEmail: FIREBASE_CLIENT_EMAIL,
-      privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
+const firebaseEnabled = !!(FIREBASE_PROJECT_ID && FIREBASE_CLIENT_EMAIL && FIREBASE_PRIVATE_KEY);
+
+if (firebaseEnabled && !admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: FIREBASE_PROJECT_ID,
+        clientEmail: FIREBASE_CLIENT_EMAIL,
+        privateKey: FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      }),
+    });
+  } catch (error) {
+    console.warn("Firebase init failed — push notifications disabled.");
+  }
 }
 
 const notificationRepo = new NotificationRepository(pgClient);
@@ -30,12 +36,12 @@ const notificationChunk = <T>(array: T[], size: number) => {
   return result;
 };
 
-export const messaging = admin.messaging(),
+export const messaging = firebaseEnabled && admin.apps.length ? admin.messaging() : null,
   sendNotification = async (
     notification: createNotificationDTO,
     tokens: string[],
   ) => {
-    if (!tokens.length) return;
+    if (!tokens.length || !messaging) return;
 
     try {
       const newNotification =
