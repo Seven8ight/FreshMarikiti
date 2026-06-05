@@ -10,34 +10,40 @@ export class ProductService implements ProductServ {
   constructor(private productRepo: ProductRepo) {}
 
   async createProduct(userId: string, details: Product): Promise<Product> {
-    if (!userId)
-      throw new Error("User id should be provided for product creation");
-    const allowedFields: string[] = [
-      "name",
-      "description",
-      "quantity",
-      "image",
-      "amount",
-      "category",
-      "type",
-    ];
+    try {
+      if (!userId)
+        throw new Error("User id should be provided for product creation");
+      const allowedFields: string[] = [
+        "name",
+        "description",
+        "quantity",
+        "image",
+        "amount",
+        "category",
+        "type",
+      ];
 
-    let newProductData: Record<string, any> = {};
+      let newProductData: Record<string, any> = {};
 
-    for (let [key, value] of Object.entries(details)) {
-      if (!allowedFields.includes(key.toLowerCase())) continue;
-      if (typeof value == "string" && value.length < 0)
-        throw new Error(`${key} has an empty value`);
+      for (let [key, value] of Object.entries(details)) {
+        if (!allowedFields.includes(key.toLowerCase())) continue;
+        if (typeof value == "string" && value.length < 0)
+          throw new Error(`${key} has an empty value`);
 
-      newProductData[key] = value;
+        newProductData[key] = value;
+      }
+
+      const newProduct: Product = await this.productRepo.createProduct(
+        userId,
+        details,
+      );
+
+      return newProduct;
+    } catch (error) {
+      warningMsg("Error at creating an product");
+      console.log(error);
+      throw error;
     }
-
-    const newProduct: Product = await this.productRepo.createProduct(
-      userId,
-      details,
-    );
-
-    return newProduct;
   }
 
   async editProduct(
@@ -76,6 +82,7 @@ export class ProductService implements ProductServ {
       return updatedProduct;
     } catch (error) {
       warningMsg("Edit user service error occurred");
+      console.log(error);
       throw error;
     }
   }
@@ -89,7 +96,8 @@ export class ProductService implements ProductServ {
 
       return retrieveProductsById;
     } catch (error) {
-      warningMsg("Get todo service error occurred");
+      warningMsg("Get product by id service error occurred");
+      console.log(error);
       throw error;
     }
   }
@@ -103,7 +111,8 @@ export class ProductService implements ProductServ {
 
       return retrieveProductsByCategory;
     } catch (error) {
-      warningMsg("Get todo service error occurred");
+      warningMsg("Get product by category service error occurred");
+      console.log(error);
       throw error;
     }
   }
@@ -116,6 +125,7 @@ export class ProductService implements ProductServ {
 
       return vendorProducts;
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }
@@ -126,7 +136,8 @@ export class ProductService implements ProductServ {
 
       return retrieveAllProducts;
     } catch (error) {
-      warningMsg("Get todo service error occurred");
+      warningMsg("Get Products service error occurred");
+      console.log(error);
       throw error;
     }
   }
@@ -137,7 +148,8 @@ export class ProductService implements ProductServ {
     try {
       await this.productRepo.deleteProduct(userId, productId);
     } catch (error) {
-      warningMsg("Delete user service error occurred");
+      warningMsg("Delete product service error occurred");
+      console.log(error);
       throw error;
     }
   }
@@ -148,7 +160,8 @@ export class ProductService implements ProductServ {
     try {
       await this.productRepo.deleteAllSellerProducts(sellerId);
     } catch (error) {
-      warningMsg("Delete user service error occurred");
+      warningMsg("Delete products service error occurred");
+      console.log(error);
       throw error;
     }
   }
