@@ -17,21 +17,27 @@ export class WasteService implements WasteServ {
     if (!userId)
       throw new Error("User id should be provided for product creation");
 
-    const allowedFields: string[] = ["location", "weight"];
+    const allowedFields: string[] = [
+      "location",
+      "weight",
+      "status",
+      "category",
+      "conversion",
+    ];
 
-    let newProductData: Record<string, any> = {};
+    let newWasteDetails: Record<string, any> = {};
 
     for (let [key, value] of Object.entries(wasteDetails)) {
       if (!allowedFields.includes(key.toLowerCase())) continue;
       if (typeof value == "string" && value.length < 0)
         throw new Error(`${key} has an empty value`);
 
-      newProductData[key] = value;
+      newWasteDetails[key] = value;
     }
 
     const newWaste: Waste = await this.wasteRepo.createWaste(
       userId,
-      wasteDetails,
+      newWasteDetails as createWasteDTO,
     );
 
     return newWaste;

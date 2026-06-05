@@ -3,6 +3,9 @@ export type Waste = {
   userid: string;
   location: string;
   weight: number;
+  status: string;
+  category: string;
+  conversion: string;
   created_at: string;
 };
 

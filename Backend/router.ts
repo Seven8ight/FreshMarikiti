@@ -27,10 +27,8 @@ const Router = (
       return sendResponseMessage(204, false, "", response);
 
     Routes().forEach((route) => {
-      if (route.pathname.toLowerCase() == pathnames.at(1)) {
-        route.controller(request, response);
-        return;
-      }
+      if (route.pathname.toLowerCase() == pathnames.at(1))
+        return route.controller(request, response);
     });
   } catch (error) {
     return sendResponseMessage(
