@@ -253,6 +253,14 @@ export const ProductController = (
             );
           }
           break;
+        default:
+          response.writeHead(404);
+          response.end(
+            JSON.stringify({
+              error: "Invalid products route, use create/edit/get/delete",
+            }),
+          );
+          break;
       }
     } catch (error) {
       response.writeHead(400);

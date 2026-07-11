@@ -131,6 +131,21 @@ export const OrderController = (
 
             const retrieveOrderById = await orderService.getOrderById(orderId);
 
+            const isOwner =
+              retrieveOrderById.buyerid === userId ||
+              retrieveOrderById.riderid === userId ||
+              userVerifier.role.includes("admin");
+
+            if (!isOwner) {
+              response.writeHead(403);
+              response.end(
+                JSON.stringify({
+                  error: "You are not authorized to view this order",
+                }),
+              );
+              return;
+            }
+
             response.writeHead(200);
             response.end(JSON.stringify(retrieveOrderById));
           } else throw new Error("Type should be either id,category or all");
@@ -190,6 +205,14 @@ export const OrderController = (
               }),
             );
           }
+          break;
+        default:
+          response.writeHead(404);
+          response.end(
+            JSON.stringify({
+              error: "Invalid orders route, use create/edit/get/delete",
+            }),
+          );
           break;
       }
     } catch (error) {

@@ -17,8 +17,8 @@ export const EditUserFunds = async (
   ) => {
     try {
       const updateUserFunds: QueryResult<User> = await pgClient.query(
-        "UPDATE users SET biocoins=$1 where phone_number=$2 or user_id=$3 RETURNING *",
-        [amount, phone_number, userId],
+        "UPDATE users SET biocoins = biocoins + $1 WHERE phone_number=$2 OR id=$3 RETURNING *",
+        [amount, phone_number ?? null, userId ?? null],
       );
 
       if (updateUserFunds.rowCount && updateUserFunds.rowCount > 0)
@@ -29,35 +29,51 @@ export const EditUserFunds = async (
       throw error;
     }
   },
-  Transact = async (OrderId: string) => {
-    const Order = await OrderRepo.getOrderById(OrderId),
-      buyer = await UserRepo.getUserById(Order.buyerid);
+  Transact = async (OrderId: string, callerId?: string) => {
+    const Order = await OrderRepo.getOrderById(OrderId);
 
-    Order.products.map(async (item) => {
-      try {
+    if (callerId && Order.buyerid !== callerId)
+      throw new Error("You are not authorized to pay for this order");
+
+    try {
+      await pgClient.query("BEGIN");
+
+      const buyerResult: QueryResult<User> = await pgClient.query(
+        "SELECT * FROM users WHERE id=$1 FOR UPDATE",
+        [Order.buyerid],
+      );
+      const buyer = buyerResult.rows[0];
+      if (!buyer) throw new Error("Buyer not found");
+
+      let remainingBalance = buyer.biocoins;
+
+      for (const item of Order.products) {
         const product = await ProductRepo.getProductById(item.id),
           seller = await UserRepo.getUserById(product.sellerId);
 
         const totalAmount = product.amount * item.quantity;
 
-        if (buyer.biocoins < totalAmount) throw new Error("Insufficient funds");
+        if (remainingBalance < totalAmount)
+          throw new Error("Insufficient funds");
 
-        const buyerBioCoins = buyer.biocoins - totalAmount,
-          sellerBioCoins = seller.biocoins + totalAmount;
+        remainingBalance -= totalAmount;
 
-        await pgClient.query("UPDATE users SET biocoins=$1 WHERE id=$2", [
-          buyerBioCoins,
-          buyer.id,
-        ]);
-
-        await pgClient.query("UPDATE users SET biocoins=$1 WHERE id=$2", [
-          sellerBioCoins,
-          seller.id,
-        ]);
-      } catch (error) {
-        throw error;
+        await pgClient.query(
+          "UPDATE users SET biocoins = biocoins + $1 WHERE id=$2",
+          [totalAmount, seller.id],
+        );
       }
-    });
+
+      await pgClient.query("UPDATE users SET biocoins=$1 WHERE id=$2", [
+        remainingBalance,
+        buyer.id,
+      ]);
+
+      await pgClient.query("COMMIT");
+    } catch (error) {
+      await pgClient.query("ROLLBACK");
+      throw error;
+    }
   },
   ReversalRequestForCash = async (phone_number: string, amount: number) => {
     try {

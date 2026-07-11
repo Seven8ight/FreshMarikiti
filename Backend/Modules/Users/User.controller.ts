@@ -83,6 +83,18 @@ export const UserController = (
 
             return;
           }
+          if (
+            !userVerifier.role.includes("admin") &&
+            !userVerifier.role.includes("manager")
+          ) {
+            response.writeHead(403);
+            response.end(
+              JSON.stringify({
+                error: "Unauthorized to access this resource",
+              }),
+            );
+            return;
+          }
 
           const allUsers = await Userservice.getAllUsers();
 
@@ -121,6 +133,7 @@ export const UserController = (
 
           response.writeHead(204);
           response.end();
+          break;
         default:
           response.writeHead(404);
           response.end(

@@ -80,7 +80,7 @@ export class ProductRepository implements ProductRepo {
   async getProductById(productId: string) {
     try {
       const productRetrieval: QueryResult<Product> = await this.DB.query(
-        "SELECT * FROM products WHERE id=$1",
+        'SELECT *, sellerid AS "sellerId" FROM products WHERE id=$1',
         [productId],
       );
 

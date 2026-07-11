@@ -26,10 +26,19 @@ const Router = (
     if (request.method == "OPTIONS")
       return sendResponseMessage(204, false, "", response);
 
-    Routes().forEach((route) => {
-      if (route.pathname.toLowerCase() == pathnames.at(1))
-        return route.controller(request, response);
-    });
+    const matchedRoute = Routes().find(
+      (route) => route.pathname.toLowerCase() == pathnames.at(1),
+    );
+
+    if (!matchedRoute)
+      return sendResponseMessage(
+        404,
+        true,
+        `API Error: unknown route /${pathnames.join("/")}`,
+        response,
+      );
+
+    return matchedRoute.controller(request, response);
   } catch (error) {
     return sendResponseMessage(
       404,

@@ -102,7 +102,7 @@ export const PaymentController = async (
                 const payment =
                   await paymentService.getReceipt(CheckoutRequestID);
 
-                EditUserFunds(
+                await EditUserFunds(
                   Number.parseInt(payment.amount),
                   payment.phone_number,
                 );
@@ -275,7 +275,7 @@ export const PaymentController = async (
         case "biocoins":
           switch (pathName[3]) {
             case "transact":
-              await Transact(parsedRequestBody.id);
+              await Transact(parsedRequestBody.id, user.id);
 
               const userDevice = await notificationRepo.getUserTokens(user.id),
                 userDeviceTokens: string[] = userDevice.map(
@@ -313,6 +313,7 @@ export const PaymentController = async (
 
                   response.writeHead(201);
                   response.end(JSON.stringify(makeRequest));
+                  break;
                 case "update":
                   if (!user.role.includes("admin"))
                     throw new Error(

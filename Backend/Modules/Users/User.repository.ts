@@ -109,7 +109,11 @@ export class UserRepository implements UserRepo {
   async getAllUsers() {
     try {
       const users: QueryResult<User> = await this.pgClient.query(
-        "SELECT * FROM users",
+        `SELECT id, username, email, profile_image AS "profileImage", biocoins,
+                goals, role, market_id, stall_number AS "stallNumber",
+                phone_number, on_shift, created_at
+         FROM users
+         WHERE deleted_at IS NULL`,
       );
 
       return users.rows;

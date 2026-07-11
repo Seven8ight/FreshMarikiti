@@ -37,6 +37,8 @@ export const server = http.createServer(
   { io, userSocketMap } = createSocketServer(server),
   socketService = new SocketService(io, userSocketMap);
 
+registerChatSocket(io);
+
 server.listen(SERVER_PORT, async () => {
   try {
     await connectToDatabase();

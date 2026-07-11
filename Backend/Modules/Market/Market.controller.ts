@@ -47,7 +47,27 @@ export const MarketController = async (
   );
 
   request.on("end", async () => {
+    try {
     const parsedRequestBody = JSON.parse(unparsedRequestBody || "{}");
+
+    const isManager =
+      userVerifier.role.includes("admin") ||
+      userVerifier.role.includes("manager");
+
+    if (
+      (pathNames[2] == "create" ||
+        pathNames[2] == "edit" ||
+        pathNames[2] == "delete") &&
+      !isManager
+    ) {
+      response.writeHead(403);
+      response.end(
+        JSON.stringify({
+          error: "User does not have permission to use this api route",
+        }),
+      );
+      return;
+    }
 
     switch (pathNames[2]) {
       case "create":
@@ -157,6 +177,16 @@ export const MarketController = async (
             error: "Invalid route passed on market route",
           }),
         );
+    }
+    } catch (error) {
+      if (response.headersSent) return;
+
+      response.writeHead(400);
+      response.end(
+        JSON.stringify({
+          error: (error as Error).message,
+        }),
+      );
     }
   });
 };

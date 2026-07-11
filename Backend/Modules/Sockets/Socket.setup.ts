@@ -23,11 +23,9 @@ export const createSocketServer = (server: http.Server) => {
       return;
     }
 
-    let user;
+    const user = verifyAccessToken(token);
 
-    try {
-      user = verifyAccessToken(token);
-    } catch {
+    if (!user) {
       socket.disconnect();
       return;
     }
