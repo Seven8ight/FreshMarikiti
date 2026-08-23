@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS waste_collection(
     location TEXT NOT NULL,
     status TEXT NOT NULL,
     conversion INT,
-    status TEXT NOT NULL,
     dry_weight DECIMAL(2,16) NOT NULL,
     image TEXT,
     reward_weight DECIMAL(2,16) NOT NULL,
