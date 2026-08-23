@@ -21,7 +21,7 @@ export const UserController = (
   );
 
   if (!userVerifier) {
-    response.writeHead(403);
+    response.writeHead(403, { "Content-Type": "application/json" });
     response.end(
       JSON.stringify({
         error: "Authentication failed, re-log in",
@@ -46,7 +46,30 @@ export const UserController = (
 
       const parsedRequestBody: any = JSON.parse(unparsedRequestBody);
 
+      // We are adding application/json headers globally for success routes to be safe
+      response.setHeader("Content-Type", "application/json");
+
       switch (pathNames[2]) {
+        // --- NEW ENDPOINT: GET /api/vendor/rewards ---
+        case "rewards":
+          if (request.method != "GET") {
+            response.writeHead(405);
+            response.end(
+              JSON.stringify({
+                error: "Use GET instead",
+              }),
+            );
+            return;
+          }
+
+          // We use ! to tell TypeScript we know this method is implemented on our Service class
+          const rewardsSummary =
+            await Userservice.getVendorRewardsSummary!(userId);
+
+          response.writeHead(200);
+          response.end(JSON.stringify(rewardsSummary));
+          break;
+
         case "edit":
           if (request.method != "PATCH") {
             response.writeHead(405);
@@ -70,8 +93,8 @@ export const UserController = (
               newUpdatedUser,
             }),
           );
-
           break;
+
         case "getall":
           if (request.method != "GET") {
             response.writeHead(405);
@@ -80,7 +103,6 @@ export const UserController = (
                 error: "Use GET instead",
               }),
             );
-
             return;
           }
           if (
@@ -100,8 +122,8 @@ export const UserController = (
 
           response.writeHead(200);
           response.end(JSON.stringify(allUsers));
-
           break;
+
         case "get":
           if (request.method != "GET") {
             response.writeHead(405);
@@ -118,6 +140,7 @@ export const UserController = (
           response.writeHead(200);
           response.end(JSON.stringify(userBody));
           break;
+
         case "delete":
           if (request.method != "DELETE") {
             response.writeHead(405);
@@ -134,6 +157,8 @@ export const UserController = (
           response.writeHead(204);
           response.end();
           break;
+          break;
+
         default:
           response.writeHead(404);
           response.end(

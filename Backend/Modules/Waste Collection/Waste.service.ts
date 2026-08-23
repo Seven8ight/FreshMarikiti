@@ -19,10 +19,12 @@ export class WasteService implements WasteServ {
 
     const allowedFields: string[] = [
       "location",
-      "weight",
       "status",
       "category",
       "conversion",
+      "dry_weight",
+      "reward_weight",
+      "chillings",
     ];
 
     let newWasteDetails: Record<string, any> = {};
@@ -47,7 +49,13 @@ export class WasteService implements WasteServ {
     if (!newWasteDetails.id) throw new Error("Waste id must be provided");
 
     try {
-      const allowedFields: string[] = ["location", "weight"];
+      const allowedFields: string[] = [
+        "location",
+        "dry_weight",
+        "reward_weight",
+        "chillings",
+        "image",
+      ];
 
       let newWasteObject: Record<string, any> = {};
 

@@ -4,8 +4,11 @@ export type Waste = {
   location: string;
   weight: number;
   status: string;
-  category: string;
+  image: string;
   conversion: string;
+  dry_weight: number;
+  reward_weight: number;
+  chillings: number;
   created_at: string;
 };
 

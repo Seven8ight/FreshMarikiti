@@ -16,7 +16,7 @@ export class WasteRepository implements WasteRepo {
   ): Promise<Waste> {
     try {
       const createWaste = await this.DB.query(
-        "INSERT INTO waste_collection(userid,location,weight) VALUES($1,$2,$3) RETURNING *",
+        "INSERT INTO waste_collection(userid,location,dry_weight,reward_weight,chillings,image) VALUES($1,$2,$3,$4,$5,$6) RETURNING *",
         [userId, wasteDetails.location, wasteDetails.weight],
       );
 

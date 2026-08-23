@@ -1,5 +1,10 @@
 import type { Client, QueryResult } from "pg";
-import type { User, UserRepo } from "./User.types.js";
+import type {
+  User,
+  UserRepo,
+  updateUserDTO,
+  VendorRewardsSummary,
+} from "./User.types.js";
 import { errorMsg, warningMsg } from "./../../Utils/Logger.js";
 import { hashPassword } from "./../../Utils/Password.js";
 import { MarketService } from "../Market/Market.service.js";
@@ -8,7 +13,7 @@ import { MarketRepository } from "../Market/Market.repository.js";
 export class UserRepository implements UserRepo {
   constructor(private pgClient: Client) {}
 
-  async editUser(userId: string, newUserData: any) {
+  async editUser(userId: string, newUserData: updateUserDTO): Promise<User> {
     try {
       let keys: string[] = [],
         values: any[] = [],
@@ -17,6 +22,9 @@ export class UserRepository implements UserRepo {
       const { role, ...rest } = newUserData;
 
       for (let [key, value] of Object.entries(rest)) {
+        // Skip undefined values
+        if (value === undefined) continue;
+
         keys.push(`${key}=$${paramIndex++}`);
         if (key === "password") value = hashPassword(value as string);
         values.push(value);
@@ -38,16 +46,13 @@ export class UserRepository implements UserRepo {
         values.push(role.role[0]);
       }
 
-      // CRITICAL FIX: Ensure we actually have fields to update before continuing
       if (keys.length === 0) throw new Error("No fields provided for update");
 
-      // FIX: Check the raw incoming payload 'rest' for market_id, not the 'keys' SQL array
-      if ("market_id" in rest) {
+      if ("market_id" in rest && rest.market_id) {
         const marketService = new MarketService(
           new MarketRepository(this.pgClient),
         );
 
-        // Find where market_id sits in the values array
         const marketIdIndex = Object.keys(rest).indexOf("market_id");
         const marketIdValue = values[marketIdIndex];
 
@@ -55,9 +60,8 @@ export class UserRepository implements UserRepo {
 
         await marketService.editMarket({
           id: marketIdValue,
-          vendors: getMarket.vendors + 1, // Fix: Use + 1 instead of postfix ++ to avoid mutation bugs
+          vendors: getMarket.vendors + 1,
         });
-        console.log("Here after after");
       }
 
       const userUpdate = await this.pgClient.query(
@@ -74,7 +78,7 @@ export class UserRepository implements UserRepo {
     }
   }
 
-  async getUserById(userId: string) {
+  async getUserById(userId: string): Promise<User> {
     try {
       const userRetrieval: QueryResult<User> = await this.pgClient.query(
         "SELECT * FROM users WHERE id=$1",
@@ -90,7 +94,7 @@ export class UserRepository implements UserRepo {
     }
   }
 
-  async getUserByEmail(email: string) {
+  async getUserByEmail(email: string): Promise<User> {
     try {
       const userRetrieval: QueryResult<User> = await this.pgClient.query(
         "SELECT * FROM users WHERE email=$1",
@@ -106,7 +110,7 @@ export class UserRepository implements UserRepo {
     }
   }
 
-  async getAllUsers() {
+  async getAllUsers(): Promise<User[]> {
     try {
       const users: QueryResult<User> = await this.pgClient.query(
         `SELECT id, username, email, profile_image AS "profileImage", biocoins,
@@ -123,7 +127,7 @@ export class UserRepository implements UserRepo {
     }
   }
 
-  async deleteUser(userId: string) {
+  async deleteUser(userId: string): Promise<void> {
     try {
       const date = new Date();
 
@@ -133,6 +137,64 @@ export class UserRepository implements UserRepo {
       ]);
     } catch (error) {
       warningMsg("Delete user repo error occurred");
+      throw error;
+    }
+  }
+
+  // --- NEW METHOD FOR REWARDS ---
+  async getVendorRewardsSummary(userId: string): Promise<VendorRewardsSummary> {
+    try {
+      // We use json_agg to bundle the related rewards directly in the SQL query
+      const query = `
+        SELECT 
+          u.available_chillings,
+          u.pending_chillings,
+          u.total_chillings_earned,
+          u.total_waste_submitted,
+          u.total_waste_processed,
+          u.co2_saved,
+          u.trees_equivalent,
+          (
+            SELECT COALESCE(json_agg(
+              json_build_object(
+                'id', r.id,
+                'amount', r.amount,
+                'source', r.source,
+                'date', r.date,
+                'status', r.status
+              ) ORDER BY r.date DESC
+            ), '[]'::json)
+            FROM rewards r
+            WHERE r.user_id = u.id
+          ) AS recent_rewards
+        FROM users u
+        WHERE u.id = $1;
+      `;
+
+      const result = await this.pgClient.query(query, [userId]);
+
+      if (result.rowCount === 0) {
+        throw new Error("User does not exist");
+      }
+
+      const row = result.rows[0];
+
+      // pg maps NUMERIC/DECIMAL to strings by default to prevent float precision loss,
+      // so we must cast them back to numbers for the TypeScript response.
+      return {
+        availableChillings: Number(row.available_chillings) || 0,
+        pendingChillings: Number(row.pending_chillings) || 0,
+        totalChillingsEarned: Number(row.total_chillings_earned) || 0,
+        totalWasteSubmitted: Number(row.total_waste_submitted) || 0,
+        totalWasteProcessed: Number(row.total_waste_processed) || 0,
+        impact: {
+          co2Saved: Number(row.co2_saved) || 0,
+          treesEquivalent: Number(row.trees_equivalent) || 0,
+        },
+        recentRewards: row.recent_rewards,
+      };
+    } catch (error) {
+      warningMsg("Get vendor rewards repo error occurred");
       throw error;
     }
   }

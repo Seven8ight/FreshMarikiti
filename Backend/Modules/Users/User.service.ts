@@ -1,122 +1,92 @@
-import { errorMsg, warningMsg } from "../../Utils/Logger.js";
 import type {
-  PublicUser,
-  updateUserDTO,
   User,
   UserRepo,
   Userservice,
+  updateUserDTO,
+  PublicUser,
+  VendorRewardsSummary,
 } from "./User.types.js";
+import { errorMsg, warningMsg } from "./../../Utils/Logger.js";
 
 export class UserService implements Userservice {
-  constructor(private UserRepo: UserRepo) {}
+  constructor(private userRepo: UserRepo) {}
 
-  private createPublicUser(userData: User): PublicUser {
-    return {
-      id: userData.id,
-      username: userData.username,
-      email: userData.email,
-      profileImage: (userData as any).profile_image,
-      biocoins: userData.biocoins,
-      goals: userData.goals,
-      phone_number: userData.phone_number,
-      role: userData.role,
-      market_id: userData.market_id,
-      stallNumber: userData.stallNumber,
-      on_shift: userData.on_shift,
-    };
+  /**
+   * Helper utility to strip sensitive data from the raw User database model
+   * before returning it to the client.
+   */
+  private toPublicUser(user: User): PublicUser {
+    const { password, oAuth, oAuthProvider, ...publicUserData } = user;
+    return publicUserData;
   }
 
-  async editUser(userId: string, newUserData: updateUserDTO) {
-    if (!userId) throw new Error("User id not provided for editing");
-
+  async editUser(
+    userId: string,
+    newUserData: updateUserDTO,
+  ): Promise<PublicUser> {
     try {
-      const allowedFields: string[] = [
-        "username",
-        "email",
-        "password",
-        "profileimage",
-        "role",
-        "phone_number",
-        "goals",
-        "action",
-        "market_id",
-        "stall_number",
-        "on_shift",
-      ];
+      const updatedUser = await this.userRepo.editUser(userId, newUserData);
+      return this.toPublicUser(updatedUser);
+    } catch (error) {
+      warningMsg(`Service: Failed to edit user ${userId}`);
+      throw error;
+    }
+  }
 
-      let newUserObject: Record<string, any> = {};
+  async getUserById(userId: string): Promise<PublicUser> {
+    try {
+      const user = await this.userRepo.getUserById(userId);
+      return this.toPublicUser(user);
+    } catch (error) {
+      warningMsg(`Service: Failed to get user by id ${userId}`);
+      throw error;
+    }
+  }
 
-      if (newUserData.role && newUserData.role.role.includes("admin"))
-        throw new Error("Unauthorized to do so");
+  async getUserByEmail(email: string): Promise<PublicUser> {
+    try {
+      const user = await this.userRepo.getUserByEmail(email);
+      return this.toPublicUser(user);
+    } catch (error) {
+      warningMsg(`Service: Failed to get user by email ${email}`);
+      throw error;
+    }
+  }
 
-      for (let [key, value] of Object.entries(newUserData)) {
-        if (!allowedFields.includes(key.toLowerCase())) continue;
-        if (value == null || (typeof value == "string" && value.length < 0))
-          throw new Error(`${key} has an empty value`);
+  async getAllUsers(): Promise<PublicUser[]> {
+    try {
+      const users = await this.userRepo.getAllUsers();
+      // Map through all users to remove sensitive data
+      return users.map((user) => this.toPublicUser(user));
+    } catch (error) {
+      errorMsg(`Service Error at getAllUsers: ${(error as Error).message}`);
+      throw error;
+    }
+  }
 
-        if (key.toLowerCase() == "profileimage")
-          newUserObject["profile_image"] = value;
-        else newUserObject[key] = value;
+  async deleteUser(userId: string): Promise<void> {
+    try {
+      await this.userRepo.deleteUser(userId);
+    } catch (error) {
+      warningMsg(`Service: Failed to delete user ${userId}`);
+      throw error;
+    }
+  }
+
+  // --- NEW METHOD FOR REWARDS ---
+  async getVendorRewardsSummary(userId: string): Promise<VendorRewardsSummary> {
+    try {
+      // Safety check: ensure the method exists on the repo (since it's optional in the interface)
+      if (!this.userRepo.getVendorRewardsSummary) {
+        throw new Error(
+          "getVendorRewardsSummary is not implemented in the repository",
+        );
       }
-      console.log("Editing");
-      console.log(newUserObject);
-      const updatedUser = await this.UserRepo.editUser(
-        userId,
-        newUserObject as any,
-      );
 
-      return this.createPublicUser(updatedUser);
+      const summary = await this.userRepo.getVendorRewardsSummary(userId);
+      return summary;
     } catch (error) {
-      warningMsg("Edit user service error occurred");
-      throw error;
-    }
-  }
-
-  async getUserById(userId: string) {
-    if (!userId) throw new Error("User id not provided for retrieval");
-
-    try {
-      const retrieveUser = await this.UserRepo.getUserById(userId);
-
-      return this.createPublicUser(retrieveUser);
-    } catch (error) {
-      errorMsg(`${(error as Error).message}`);
-      warningMsg("Get user service error occurred");
-      throw error;
-    }
-  }
-
-  async getUserByEmail(email: string) {
-    if (!email) throw new Error("User id not provided for retrieval");
-
-    try {
-      const retrieveUser = await this.UserRepo.getUserByEmail(email);
-
-      return this.createPublicUser(retrieveUser);
-    } catch (error) {
-      errorMsg(`${(error as Error).message}`);
-      warningMsg("Get user service error occurred");
-      throw error;
-    }
-  }
-
-  async getAllUsers() {
-    try {
-      const allUsers = await this.UserRepo.getAllUsers();
-
-      return allUsers;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async deleteUser(userId: string) {
-    if (!userId) throw new Error("User id not provided for deletion");
-
-    try {
-      await this.UserRepo.deleteUser(userId);
-    } catch (error) {
-      warningMsg("Delete user service error occurred");
+      warningMsg(`Service: Failed to get vendor rewards for user ${userId}`);
       throw error;
     }
   }
